@@ -1,0 +1,46 @@
+.fw-textview-style-balance-main {
+	margin: 0 16px;
+	margin-top: 16px;
+	font-size: 36px;
+}
+
+.fw-textview-style-balance-small {
+	margin: 8px 16px;
+	font-size: 12px;
+	color: #999;
+}
+
+.fw-textview-style-hashrate,
+.fw-textview-style-title3 {
+	margin: 8px 16px;
+	font-size: 24px;
+}
+
+.qrview {
+	display: block;
+	margin: 16px auto;
+}
+
+.sumEditor {display: flex; margin: 16px; margin-bottom: 48px; }
+.sumEditor > input, .sumEditor > a {
+	background: none; border: none;
+	font-size: 36px; display: block;
+}
+.sumEditor > input {
+	flex: 1; width: 0;
+}
+
+.fw-textview-style-address {
+	text-align: center;
+	font: monospace;
+	color: #f09;
+}
+
+.fw-textview-style-address-label {
+	text-align: center;
+	color: #333;
+	font-weight: bold;
+}
+
+.buttons-row {display: flex; }
+.buttons-row > button {flex: 1;}

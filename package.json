@@ -1,0 +1,37 @@
+{
+	"name": "mwallet-ltv",
+	"version": "1.0.0",
+	"description": "",
+	"main": "index.js",
+	"scripts": {
+		"start": "electron .",
+		"pack": "electron-builder --dir",
+		"dist": "electron-builder"
+	},
+	"author": "",
+	"license": "MIT",
+	"devDependencies": {
+		"electron": "^8.0.1",
+		"electron-builder": "^22.3.2"
+	},
+	"dependencies": {
+		"electron-dl": "^3.0.0",
+		"md5-file": "^4.0.0",
+		"qrcode": "^1.4.4"
+	},
+	"build": {
+		"appId": "ru.mhbrgn.mwallet.ltv",
+		"linux": {
+			"target": [
+				{"target": "deb", "arch": "x64"},
+				{"target": "rpm", "arch": "x64"}
+			]
+		},
+		"win": {
+			"target": [
+				{"target": "portable", "arch": "x64"},
+				{"target": "nsis", "arch": "x64"}
+			]
+		}
+	}
+}
