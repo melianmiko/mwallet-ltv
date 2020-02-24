@@ -163,7 +163,7 @@ class WalletHomeScreen extends Screen {
 			row.setIcon("call_received")
 				.setTitle("+"+data.amount+" LTV <a style='color:#999'>("+moment.unix(data.time).fromNow()+")</a>");
 
-		if(data.category == "generate")
+		if(data.category == "generate" || data.category == "immature")
 			row.setIcon("add_box")
 				.setTitle("+"+data.amount+" LTV <a style='color:#999'>"+moment.unix(data.time).fromNow()+")</a>");
 
@@ -293,7 +293,7 @@ class ReceiveScreen extends Screen {
 			.setStyle(Button.STYLE_OUTLINE)
 			.setText("Скопировать")
 			.setOnClickListener(() => {
-				electron.clipboard.writeText(address, "address");
+				mWallet.copy(address);
 			});
 		btn.getBlock().style.display = "block";
 		btn.getBlock().style.margin = "8px auto";

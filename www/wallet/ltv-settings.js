@@ -39,11 +39,11 @@ class ToolsScreen extends Screen {
 				new LauncherScreen(true).start();
 			}));
 
-		this.appendView(new RowView()
+		if(mWallet.exit) this.appendView(new RowView()
 			.setIcon("exit_to_app")
 			.setTitle("Завершить приложение")
 			.setOnClickListener(function() {
-				new PlatformTools().exit();
+				mWallet.exit();
 			}))
 
 		this.appendView(new SubHeader("Настройки кошелька"));

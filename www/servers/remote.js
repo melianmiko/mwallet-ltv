@@ -1,14 +1,39 @@
 /*
- * Platform specific code.
- * This is remote variant
+ * Server settings.
+ * This is direct connection variant variant
  */
 
-mWallet.remote = {};
+mWallet.server.launch = function() {return new Promise((resolve, reject) => {
+	if(mWallet.server.isLocal) {
+		// Forcely use saved settings
+		resolve(true);
+	} else {
+		// Recover saved settings and use then
+		mWallet.server.loadSaved();
+		mWallet.server.try().then((d) => {
+			resolve(true);
+		}).catch((e) => {
+			new RemoteSettingsScreen(false, resolve).start();
+		})
+	}
+})}
 
-class PostLauncherScreem extends Screen {
-	constructor(edit) {
+mWallet.server.try = function() {
+	return mWallet.sendCmd(["getwalletinfo"]);
+}
+
+mWallet.server.loadSaved = function() {
+	mWallet.server.url = localStorage[mWallet.server.id+"_url"];
+	mWallet.server.port = localStorage[mWallet.server.id+"_port"];
+	mWallet.server.login = localStorage[mWallet.server.id+"_login"];
+	mWallet.server.passwd = localStorage[mWallet.server.id+"_passwd"];
+}
+
+class RemoteSettingsScreen extends Screen {
+	constructor(openedFromSettings, resolve) {
 		super();
-		this.edit = edit;
+		this.openedFromSettings = openedFromSettings;
+		this.resolve = resolve;
 	}
 
 	onCreate() {
@@ -19,16 +44,7 @@ class PostLauncherScreem extends Screen {
 		}
 
 		var ctx = this;
-		ctx.load();
-		ctx.tryConnect().then(() => {
-			new WalletHomeScreen().start();
-		}).catch(() => {
-			ctx.showEditor();
-		})
-	}
 
-	showEditor() {
-		var ctx = this;
 		this.setTitle("Настроить подключение");
 		this.formUrl = new TextInputView()
 			.setTitle("URL");
@@ -43,8 +59,8 @@ class PostLauncherScreem extends Screen {
 		this.appendView(this.formLogin);
 		this.appendView(this.formPasswd);
 
-		if(this.edit) this.appendView(new Button().setStyle(Button.STYLE_OUTLINE)
-			.setText("Connect")
+		if(this.openedFromSettings) this.appendView(new Button().setStyle(Button.STYLE_OUTLINE)
+			.setText("Save")
 			.setOnClickListener(() => {
 				ctx.save();
 			}))
@@ -52,20 +68,13 @@ class PostLauncherScreem extends Screen {
 			.setText("Connect")
 			.setOnClickListener(() => {
 				ctx.save();
-				ctx.load();
 				ctx.tryConnect().then(() => {
-					new WalletHomeScreen().start();
+					ctx.resolve();
+					ctx.finish();
 				}).catch(() => {
 					new Alert().setMessage("Error").show();
 				})
 			}))
-	}
-
-	load() {
-		mWallet.remote.url = localStorage[wallet_id+"_url"];
-		mWallet.remote.port = localStorage[wallet_id+"_port"];
-		mWallet.remote.login = localStorage[wallet_id+"_login"];
-		mWallet.remote.passwd = localStorage[wallet_id+"_passwd"];
 	}
 
 	save() {
@@ -73,32 +82,11 @@ class PostLauncherScreem extends Screen {
 		localStorage[wallet_id+"_port"] = this.formPort.toString();
 		localStorage[wallet_id+"_login"] = this.formLogin.toString();
 		localStorage[wallet_id+"_passwd"] = this.formPasswd.toString();
-	}
-
-	tryConnect() {return new Promise((resolve, reject) => {
-		if(!mWallet.remote.url || !mWallet.remote.port ||
-			!mWallet.remote.login || !mWallet.remote.passwd) {
-			reject(false);
-			return;
-		}
-
-		mWallet.sendCmd(["getwalletinfo"]).then(() => {
-			resolve(true);
-		}).catch(() => {
-			reject(false);
-		})
-	})}
-}
-
-class PlatformTools {
-	exit() {
-		new Alert()
-			.setMessage("Это удалённый кошелёк. Просто закройте окно.")
-			.show();
+		mWallet.server.loadSaved();
 	}
 }
 
-mWallet.settings = function() {
+if(!mWallet.server.isLocal) mWallet.server.settings = function() {
 	new PostLauncherScreem(true).start();
 }
 
@@ -111,10 +99,10 @@ mWallet.sendCmd = function(args) {return new Promise(function(resolve,reject) {
 	};
 	
 	var xhr = new XMLHttpRequest();
-	xhr.open("POST", "http://"+mWallet.remote.url+
-		":"+mWallet.remote.port);
+	xhr.open("POST", "http://"+mWallet.server.url+
+		":"+mWallet.server.port);
 	xhr.setRequestHeader("Authorization", 
-		"Basic " + btoa(mWallet.remote.login+":"+mWallet.remote.passwd));
+		"Basic " + btoa(mWallet.server.login+":"+mWallet.server.passwd));
 
 	xhr.onload = function() {
 		if(xhr.status == 200) {
