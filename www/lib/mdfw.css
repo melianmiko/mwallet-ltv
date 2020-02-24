@@ -42,6 +42,42 @@ body {
   transition: opacity 0.5s;
   content: "";
 }
+.fw-button.style-outline {
+  background: transparent;
+  border: none;
+  color: #009999;
+  color: #009999;
+  padding: 0 0.5rem;
+  font-size: 0.875rem;
+  min-width: 4rem;
+  height: 2.25rem;
+  line-height: 2.25rem;
+  margin: 0.5rem;
+  border: thin #ccc solid;
+  border-radius: 0.25rem;
+  text-transform: uppercase;
+  position: relative;
+}
+.fw-button.style-outline:hover::before {
+  opacity: 0.2;
+}
+.fw-button.style-outline:active::before {
+  opacity: 0.4;
+}
+.fw-button.style-outline:focus::before {
+  opacity: 0.4;
+}
+.fw-button.style-outline::before {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #000000;
+  opacity: 0;
+  transition: opacity 0.5s;
+  content: "";
+}
 .fw-button.style-contained {
   background: #009999;
   border: none;

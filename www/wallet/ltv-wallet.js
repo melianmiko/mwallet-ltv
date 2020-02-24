@@ -1,3 +1,4 @@
+var version = "alpha1";
 
 // Global variables
 var globalWalletData = null;
@@ -59,7 +60,7 @@ class WalletHomeScreen extends Screen {
 		this.appendView(btns);
 
 		var recvBtn = new Button()
-			.setStyle(Button.STYLE_FLAT)
+			.setStyle(Button.STYLE_OUTLINE)
 			.setText("Получить")
 			.setOnClickListener(function() {
 				ctx.showGetUI();
@@ -68,13 +69,30 @@ class WalletHomeScreen extends Screen {
 		btns.appendChild(recvBtn.getBlock());
 
 		var sendBtn = new Button()
-			.setStyle(Button.STYLE_FLAT)
+			.setStyle(Button.STYLE_OUTLINE)
 			.setText("Отправить")
 			.setOnClickListener(function() {
 				ctx.showSendUI();
 			});
 
 		btns.appendChild(sendBtn.getBlock());
+
+		this.updateBox = Utils.inflate({type: "div"});
+		this.appendView(this.updateBox);
+
+		Updater.checkAppUpdate().then((r) => {
+			if(r !== false) {
+				this.updateBox.appendView(new RowView()
+					.setTitle("Доступна новая версия приложения")
+					.setSummary("Нажмите для обновления")
+					.setIcon("system_update_alt")
+					.setOnClickListener(() => {
+						new PlatformTools().openBrowser(r);
+					}));
+			}
+		})
+
+		this.appendView(new SubHeader("История"));
 
 		this.historyBox = Utils.inflate({type: "div", class: "history"});
 		this.historyBox.appendView(new TextView("info", "Loading history..."));
@@ -191,165 +209,37 @@ class WalletDataProvider {
 
 	updateWalletInfo() {
 		var ctx = this;
-		sendCommand(["listtransactions"]).then(function(data) {
+		mWallet.sendCmd(["listtransactions"]).then(function(data) {
 			ctx.isHistoryReady = true;
 			ctx.history = data;
 		});
-		sendCommand(["getwalletinfo"]).then(function(data) {
+		mWallet.sendCmd(["getwalletinfo"]).then(function(data) {
 			for(var a in data)
 				ctx[a] = data[a];
 			ctx.isBalanceReady = true;
 		});
-		sendCommand(["getconnectioncount"]).then(function(data) {
+		mWallet.sendCmd(["getconnectioncount"]).then(function(data) {
 			if(data > 0)
 				conState = 1;
 			else
 				conState = 0;
 		});
-		sendCommand(["getblockcount"]).then(function(count) {
+		mWallet.sendCmd(["getblockcount"]).then(function(count) {
 			ctx.blockcount = count;
 		});
-		sendCommand(["getgenerate"]).then(function(isGenerate) {
+		mWallet.sendCmd(["getgenerate"]).then(function(isGenerate) {
 			ctx.isGenerate = isGenerate;
 		})
-		sendCommand(["gethashespersec"]).then(function(hashrate) {
+		mWallet.sendCmd(["gethashespersec"]).then(function(hashrate) {
 			ctx.hashrate = hashrate;
 		})
-		sendCommand(["getaccountaddress", ""]).then(function(address) {
+		mWallet.sendCmd(["getaccountaddress", ""]).then(function(address) {
 			ctx.addressReceive = address;
 		})
 	}
 }
 
 // =========================================================================================
-class ToolsScreen extends Screen {
-	onCreate() {
-		this.setHomeAsUpAction();
-		this.appendView(new RowView()
-			.setIcon("arrow_downward")
-			.setTitle("Майнинг")
-			.setSummary("Настройки генерации криптовалюты")
-			.setOnClickListener(function(){
-				new MinerCfgScreen().start();
-			}));
-		this.appendView(new RowView()
-			.setIcon("pets")
-			.setTitle("Задонатить разработчику mWallet LTV")
-			.setOnClickListener(function(){
-				new SendScreen("LSBBmSdZhEKvDZ6C1yd1ejc6a9h76qXAu2", 
-					null, "Спасибо за приложение")
-					.start();
-			}));
-		this.appendView(new RowView()
-			.setIcon("exit_to_app")
-			.setTitle("Завершить приложение")
-			.setSummary("Остановить фоновый сервис и закрыть приложение")
-			.setOnClickListener(function() {
-				sendCommand(["stop"]).then(function() {
-					electron.remote.getCurrentWindow().close();
-				})
-			}))
-	}
-}
-
-class MinerCfgScreen extends Screen {
-	onCreate() {
-		var ctx = this;
-
-		this.threads = -1;
-		this.setHomeAsUpAction();
-		this.setTitle("Майнинг");
-
-		setInterval(function() {
-			ctx.update()
-		}, 5000);
-
-		this.update();
-	}
-
-	update() {
-		if(globalWalletData.blockcount > 10000) 
-			this.showPoSUI();
-		else
-			this.showPoWUI();
-	}
-
-	showPoWUI() {
-		var ctx = this;
-		this.wipeContents();
-
-		this.appendView(new TextView("hashrate", "Hashrate - "+this.getHashrate()))
-
-		if(globalWalletData.isGenerate)
-			this.appendView(new RowView()
-				.setTitle("Остановить генерацию")
-				.setIcon("stop")
-				.setOnClickListener(function() {
-					ctx.setGenerate(false);
-				}));
-		else
-			this.appendView(new RowView()
-				.setTitle("Запустить генерацию")
-				.setIcon("play_arrow")
-				.setOnClickListener(function() {
-					ctx.setGenerate(true);
-				}));
-
-		this.appendView(new RowView()
-			.setTitle("Установить количество потоков")
-			.setIcon("account_tree")
-			.setOnClickListener(function() {
-				ctx.dialogThreads();
-			}))
-	}
-
-	getHashrate() {
-		var hr = globalWalletData.hashrate,
-			prefix = "";
-
-		if(hr > 500000) {
-			hr = hr/1000000;
-			prefix = "M";
-		} else if(hr > 900) {
-			hr = hr/1000;
-			prefix = "k";
-		}
-
-		return hr+" "+prefix+"H/s";
-	}
-
-	setGenerate(isGenerate) {
-		sendCommand(["setgenerate", isGenerate, this.threads]);
-	}
-
-	dialogThreads() {
-		var dialog = new Dialog();
-		var prompt = new TextInputView();
-		var ctx = this;
-		prompt.setTitle("Количество потоков");
-		prompt.setType("number");
-		dialog.appendView(prompt);
-		dialog.addButton(new Button().setText("Применить").setOnClickListener(function(){
-			dialog.hide();
-			globalWalletData.threads = parseInt(prompt.toString());
-			ctx.setGenerate(true);
-		}));
-		dialog.addButton(new Button().setText("Неограничено").setOnClickListener(function(){
-			dialog.hide();
-			globalWalletData.threads = -1;
-			ctx.setGenerate(true);
-		}));
-		dialog.addButton(new Button().setText("Отмена").setOnClickListener(function(){
-			dialog.hide();
-		}));
-		dialog.show();
-	}
-
-	showPoSUI() {
-
-	}
-}
-
 class TransactionViewScreen extends Screen {
 	constructor(data) {
 		super();
@@ -402,7 +292,9 @@ class ReceiveScreen extends Screen {
 		this.appendView(new TextView("address-label", "Ваш адрес:"));
 		this.appendView(this.addrview);
 
-		var btn = new Button().setText("Скопировать")
+		var btn = new Button()
+			.setStyle(Button.STYLE_OUTLINE)
+			.setText("Скопировать")
 			.setOnClickListener(() => {
 				electron.clipboard.writeText(address, "address");
 			});
@@ -466,7 +358,7 @@ class SendScreen extends Screen {
 			ctx = this, comment = this.comment;
 
 		console.log(addr, sum, comment);
-		sendCommand(["sendtoaddress", addr, sum, comment]).then((a) => {
+		mWallet.sendCmd(["sendtoaddress", addr, sum, comment]).then((a) => {
 			console.log(a);
 			ctx.finish();
 		}).catch((e) => {
@@ -517,25 +409,25 @@ class ExplorerScreen extends Screen {
 	updateStatusBox() {
 		var ctx = this;
 		this.statusBox.innerHTML = "";
-		sendCommand(["listmasternodes"]).then((d) => {
+		mWallet.sendCmd(["listmasternodes"]).then((d) => {
 			this.statusBox.appendView(new RowView()
 				.setTitle("<b>Количество мастернод: </b>"+d.length));
-			return sendCommand(["getconnectioncount"]);
+			return mWallet.sendCmd(["getconnectioncount"]);
 		}).then((d) => {
 			this.statusBox.appendView(new RowView()
 				.setTitle("<b>Количество подключений: </b>"+d));
-			return sendCommand(["listbanned"]);
+			return mWallet.sendCmd(["listbanned"]);
 		}).then((d) => {
 			this.statusBox.appendView(new RowView()
 				.setOnClickListener(() => {
-					sendCommand(["clearbanned"]).then(() => {
+					mWallet.sendCmd(["clearbanned"]).then(() => {
 						new Alert().setMessage("Список очищен").show();
 						ctx.updateStatusBox();
 					})
 				})
 				.setSummary("Нажмите для очистки")
 				.setTitle("<b>Количество забаненных: </b>"+d.length));
-			return sendCommand(["getnetworkhashps"]);
+			return mWallet.sendCmd(["getnetworkhashps"]);
 		}).then((d) => {
 			this.statusBox.appendView(new RowView()
 				.setTitle("<b>Скорость сети: </b>"+ctx.parseHashrate(d)));
@@ -597,39 +489,6 @@ class ExplorerScreen extends Screen {
 	}
 }
 
-class LockScreen extends Screen {
-	unlock() {var ctx = this; return new Promise((resolve, reject) => {
-		var te = new TextInputView()
-			.setTitle("Пароль")
-			.setType("password");
-
-		var d = new Dialog()
-			.setMessage("Для этой операции нужно раблокировать кошелёк. Введите ваш пароль:")
-			.appendView(te)
-			.addButton(new Button().setText("Отмена").setOnClickListener(() => {
-				d.hide();
-			})).addButton(new Button().setText("Разблокировать").setOnClickListener(() => {
-				d.hide();
-				ctx.doUnlock(te.toString()).then(() => {
-					resolve();
-				})
-			})).show();
-	})}
-
-	doUnlock(password) {return new Promise((resolve, reject) => {
-		sendCommand(["walletpassphrase", password, 10]).then((r) => {
-			resolve();
-		}).catch((e) => {
-			if(e.code == -14) {
-				// Invalid password
-				new Alert().setMessage("Неверный пароль").show();
-			}
-			console.error(e);
-			reject(e);
-		})
-	})}
-}
-
 class HistoryScreen extends Screen {
 	onCreate() {
 		var ctx = this;
@@ -648,7 +507,7 @@ class HistoryScreen extends Screen {
 	loadNext() {
 		var ctx = this, hs = new WalletHomeScreen();
 
-		sendCommand(["listtransactions", "", 10, ctx.offset]).then((data) => {
+		mWallet.sendCmd(["listtransactions", "", 10, ctx.offset]).then((data) => {
 			ctx.offset += 10;
 			for(var a = data.length-1; a >= 0; a--)
 				ctx.box.appendView(hs.buildHistoryRow(data[a]));
@@ -656,12 +515,3 @@ class HistoryScreen extends Screen {
 	}
 }
 
-
-class ConsoleScreen extends Screen {
-	onCreate() {
-		this.setHomeAsUpAction();
-		this.logbox = Utils.inflate({type: "div"});
-		this.appendView(this.logbox);
-		this.input = new TextInputView();
-	}
-}

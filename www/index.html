@@ -6,15 +6,18 @@
     <title>mWallet LTV</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" type="text/css" media="screen" href="lib/mdfw.css">
-    <link rel="stylesheet" type="text/css" media="screen" href="lib/ltv-wallet.css">
+    <link rel="stylesheet" type="text/css" media="screen" href="wallet/ltv-wallet.css">
+
     <script src="lib/mdfw.js"></script>
     <script src="lib/moment-with-locales.js"></script>
-    <script src="lib/platform-tools.js"></script>
-    <script src="lib/ltv-wallet.js"></script>
+
+    <script src="wallet/launcher.js"></script>
+    <script src="wallet/ltv-wallet.js"></script>
+    <script src="wallet/ltv-settings.js"></script>
 </head>
 <body>
     <script>
-        new LauncherScreem().start();
+        mWallet.launch();
     </script>
 </body>
 </html>

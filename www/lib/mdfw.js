@@ -315,7 +315,8 @@ class ColorFix {
 		var d = document.getElementById("colorfix");
 		if(d) d.remove();
 
-		var css = ".fw-button.style-flat::before {background-color: "+Config.mainColor+"}",
+		var css = ".fw-button.style-flat::before, .fw-button.style-outline::before "+
+			"{background-color: "+Config.mainColor+"}",
 			style = document.createElement("style");
 
 		if (style.styleSheet) {
@@ -1152,6 +1153,10 @@ class Button {
 	 * Contained (filled) button style id
 	 */
 	static get STYLE_CONTAINED() { return "style-contained"; }
+	/**
+	 * Outlined button style id
+	 */
+	static get STYLE_OUTLINE() { return "style-outline"; }
 
 	/**
 	 * Returns default button style
@@ -1174,9 +1179,11 @@ class Button {
 	 * Re-install style-specific properties
 	 */
 	_reDecorate() {
-		if(this.style == Button.STYLE_FLAT) {
+		if(this.style == Button.STYLE_FLAT || 
+			this.style == Button.STYLE_OUTLINE) {
 			this.mBlock.style.backgroundColor = "";
 			this.mBlock.style.color = Config.mainColor;
+			this.mBlock.style.borderColor = Config.mainColor;
 		} else if(this.style == Button.STYLE_CONTAINED) {
 			this.mBlock.style.backgroundColor = Config.mainColor;
 			this.mBlock.style.color = null;
@@ -2142,6 +2149,7 @@ class TestScreen2 extends Screen {
         this.appendView(new Button().setText("Default button"));
         this.appendView(new Button().setStyle(Button.STYLE_CONTAINED).setText("Contained button"));
         this.appendView(new Button().setStyle(Button.STYLE_FLAT).setText("Flat button"));
+        this.appendView(new Button().setStyle(Button.STYLE_OUTLINE).setText("Flat button"));
 
         this.appendView(new SubHeader("RowView tests"));
         this.appendView(new RowView().setTitle("Single-line"));

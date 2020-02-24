@@ -17,7 +17,7 @@ const DAEMON_ARGS = "-rpcport=16314 -rpcuser=leadertv -rpcpassword=leadertv";
 const PREBUILD_DIR = require('electron').remote.app.getPath('userData')+
 	(process.platform === "win32" ? "\\bin" : "/bin");
 
-class LauncherScreem extends Screen {
+class PostLauncherScreem extends Screen {
 	onCreate() {
 		this.setMode(Screen.MODE_ROOT);
 		var pTools = new PlatformTools(), ctx = this;
@@ -94,6 +94,12 @@ class PlatformTools {
 		}
 	})}
 
+	exit() {
+		mWallet.sendCmd(["stop"]).then(function() {
+			electron.remote.getCurrentWindow().close();
+		})
+	}
+
 	downloadDaemon() {var ctx = this;return new Promise((resolve, reject) => {
 		if(process.platform === "win32") {
 			console.log("download md5...");
@@ -136,7 +142,7 @@ class PlatformTools {
 	})}
 
 	tryDaemonConnection() {return new Promise((resolve, reject) => {
-		sendCommand(["getwalletinfo"]).then((r) => {
+		mWallet.sendCmd(["getwalletinfo"]).then((r) => {
 			resolve(true);
 		}).catch((e) => {
 			resolve(false);
@@ -177,9 +183,13 @@ class PlatformTools {
 			});
 		});
 	})}
+
+	openBrowser(link) {
+		electron.shell.openExternal(link);
+	}
 }
 
-function sendCommand(args) {return new Promise(function(resolve,reject) {
+mWallet.sendCmd = function(args) {return new Promise(function(resolve,reject) {
 	var data = {
 		jsonrpc: "1.0", 
 		id: "curltest", 
