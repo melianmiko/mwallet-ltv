@@ -270,22 +270,19 @@ class TransactionViewScreen extends Screen {
 
 class ReceiveScreen extends Screen {
 	onCreate() {
-		var QRCode = require('qrcode'),
-			address = globalWalletData.addressReceive,
+		var address = globalWalletData.addressReceive,
 			url = "leadertvcoin:"+address,
 			ctx = this;
 
 		this.setHomeAsUpAction();
 
-		this.qrview = Utils.inflate({type: "img", class: "qrview"});
+		this.qrview = Utils.inflate({type: "a", class: "qrview"});
 		this.addrview = new TextView("address", address);
 
-		QRCode.toDataURL(url, (err, url) => {
-			if(err) {
-				ctx.finish();
-			} else {
-				ctx.qrview.src = url;
-			}
+		new QRCode(this.qrview, {
+			text: url,
+			width: 172,
+			height: 172
 		});
 
 		this.appendView(this.qrview);

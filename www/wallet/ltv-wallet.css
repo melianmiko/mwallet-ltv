@@ -19,6 +19,7 @@
 .qrview {
 	display: block;
 	margin: 16px auto;
+    width: 172px;
 }
 
 .sumEditor {display: flex; margin: 16px; margin-bottom: 48px; }
