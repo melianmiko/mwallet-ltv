@@ -5,7 +5,7 @@ mWallet.launch = function() {
 		// ELetron mode
         mWallet.native = "native-electron";
 		mWallet.platform = "electron";
-	} else if(false) {
+	} else if(typeof(cordova) == "object") {
 		// Cordova (non-native)
 		mWallet.platform = "cordova";
 	} else {
@@ -40,28 +40,48 @@ class LauncherScreen extends Screen {
 			console.log("loading menu...");
 			this.setTitle("Выбор кошелька");
 			if(this.forceMenu) this.setHomeAsUpAction();
-
-			if(mWallet.native)
-				this.appendView(new RowView()
-					.setTitle("Основной кошелёк")
-					.setOnClickListener(() => {
-						if(!ctx.forceMenu)
-							ctx.loadNativeDefault();
-					}));
-
-			for(var a in wallets) {
-				this.addWalletRow(wallets[a]);
-			}
-
-			this.appendView(new SubHeader("Создать новый"));
-			// TODO: Name prompt
-
-			this.appendView(new RowView()
-				.setTitle("Удалённый кошелеё")
-				.setOnClickListener(() => {
-					ctx.createWallet("remote", "New remote");
-				}))
+			this.listWallets();
 		}
+	}
+
+	listWallets() {
+		var ctx = this;
+		var wallets = JSON.parse(localStorage.myWallets);
+		this.wipeContents();
+
+		if(mWallet.native)
+			this.appendView(new RowView()
+				.setTitle("Локальный кошелёк")
+				.setIcon("account_balance_wallet")
+				.setOnClickListener(() => {
+					ctx.loadNativeDefault();
+				}));
+
+		this.appendView(new RowView()
+			.setTitle("Новый кошелёк")
+			.setIcon("add_circle")
+			.setOnClickListener(() => {
+				ctx.createMenu();
+			}));
+
+		this.appendView(new SubHeader("Аккаунты"));
+
+		for(var a in wallets) {
+			this.addWalletRow(wallets[a]);
+		}
+	}
+
+	createMenu() {
+		var dialog = new Dialog(), ctx = this;
+		dialog.appendView(new RowView()
+			.setTitle("Удалённый кошелёк")
+			.setSummary("Подключиться к серверу leadertvcoind")
+			.setOnClickListener(function() {
+				dialog.hide();
+				ctx.createWallet("remote", "New remote server")
+			}));
+
+		dialog.show();
 	}
 
 	addWalletRow(data) {
@@ -71,14 +91,70 @@ class LauncherScreen extends Screen {
 			id = data.split(":")[1],
 			name = data.substr(type.length+id.length+2);
 
-		this.appendView(new RowView()
+		var row = new RowView()
 			.setTitle(name)
 			.setOnClickListener(() => {
-				if(ctx.forceMenu) 
-					ctx.walletMenu(data);
-				else
-					ctx.loadWallet(data);
+				ctx.loadWallet(data);
+			});
+
+		row.setAction("изменить", "more_vert", () => {
+			ctx.editWallet(data);
+		})
+
+		this.appendView(row);
+	}
+
+	editWallet(data) {
+		var dialog = new Dialog(), ctx = this;
+		dialog.appendView(new RowView()
+			.setIcon("edit").setTitle("Переименовать")
+			.setOnClickListener(() => {
+				dialog.hide();
+				ctx.rename(data);
 			}));
+		dialog.appendView(new RowView()
+			.setIcon("delete").setTitle("Удалить")
+			.setOnClickListener(() => {
+				dialog.hide();
+				ctx.remove(data);
+			}));
+
+		dialog.show();
+	}
+
+	remove(data) {
+		var wallets = JSON.parse(localStorage.myWallets);
+		var index = wallets.indexOf(data);
+		wallets.splice(index, 1);
+		localStorage.myWallets = JSON.stringify(wallets);
+		this.listWallets();
+	}
+
+	rename(data) {
+		var ctx = this;``
+		var type = data.split(":")[0],
+			id = data.split(":")[1],
+			name = data.substr(type.length+id.length+2);
+
+		var ti = new TextInputView()
+			.setTitle("Новое название")
+			.fromString(name);
+
+		var dialog = new Dialog()
+			.appendView(ti)
+			.addButton(new Button().setText("Отмена").setOnClickListener(() => {
+				dialog.hide();
+			}))
+			.addButton(new Button().setText("Переименовать").setOnClickListener(() => {
+				dialog.hide();
+				name = ti.toString();
+				var newdata = type+":"+id+":"+name;
+				var wallets = JSON.parse(localStorage.myWallets);
+				var index = wallets.indexOf(data);
+				wallets[index] = newdata;
+				localStorage.myWallets = JSON.stringify(wallets);
+				ctx.listWallets();
+			})).show();
 	}
 
 	loadNativeDefault() {
@@ -88,11 +164,18 @@ class LauncherScreen extends Screen {
 
 	createWallet(type, name) {
 		var wallets = JSON.parse(localStorage.myWallets);
-		wallets[wallets.length] = type+":"+type+wallets.length+":"+name;
+		var data = type+":"+type+wallets.length+":"+name;
+		wallets[wallets.length] = data;
 		localStorage.myWallets = JSON.stringify(wallets);
+		this.listWallets();
+		this.loadWallet(data);
 	}
 
 	loadWallet(data) {
+		if(this.forceMenu) {
+			location.reload();
+			return;
+		}
 		var type = data.split(":")[0],
 			id = data.split(":")[1],
 			name = data.substr(type.length+id.length+2);

@@ -109,7 +109,7 @@ mWallet.sendCmd = function(args) {return new Promise(function(resolve,reject) {
 		method: args[0],
 		params: (args.length > 1 ? args.slice(1) : [])
 	};
-
+	
 	var xhr = new XMLHttpRequest();
 	xhr.open("POST", "http://"+mWallet.remote.url+
 		":"+mWallet.remote.port);
