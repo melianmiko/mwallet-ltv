@@ -48,37 +48,42 @@ class WalletHomeScreen extends Screen {
 
 	createLayout() {
 		var ctx = this;
+		this.addMod(new WideScreenMod());
+
+		var expandable = new ExpandableLayout(),
+			left = expandable.addColumn(360, 360),
+			right = expandable.addColumn(400, 540);
+
+		this.appendView(expandable);
 
 		this.mainBalanceView = new TextView("balance-main", "-- LTV");
-		this.appendView(this.mainBalanceView);
+		left.appendView(this.mainBalanceView);
 		this.unfonfirmedBalanceView = new TextView("balance-small", "Не подтверждено: 0 LTV");
-		this.appendView(this.unfonfirmedBalanceView);
+		left.appendView(this.unfonfirmedBalanceView);
 		this.immatureBalanceView = new TextView("balance-small", "Дозревают: 0 LTV");
-		this.appendView(this.immatureBalanceView);
+		left.appendView(this.immatureBalanceView);
 
-		var btns = Utils.inflate({type: "div", class: "buttons-row"});
-		this.appendView(btns);
-
-		var recvBtn = new Button()
+		var row = Utils.inflate({type: "div", class: "buttons-row"});
+		row.appendView(new Button()
 			.setStyle(Button.STYLE_OUTLINE)
-			.setText("Получить")
-			.setOnClickListener(function() {
+			.setText("Получить").setOnClickListener(() => {
 				ctx.showGetUI();
-			});
-
-		btns.appendChild(recvBtn.getBlock());
-
-		var sendBtn = new Button()
+			}));
+		row.appendView(new Button()
 			.setStyle(Button.STYLE_OUTLINE)
-			.setText("Отправить")
-			.setOnClickListener(function() {
+			.setText("Отправить").setOnClickListener(() => {
 				ctx.showSendUI();
-			});
+			}));
+		row.appendView(new Button()
+			.setStyle(Button.STYLE_OUTLINE)
+			.setText("Журнал").setOnClickListener(() => {
+				new HistoryScreen().start();
+			}));
 
-		btns.appendChild(sendBtn.getBlock());
+		left.appendView(row);
 
 		this.updateBox = Utils.inflate({type: "div"});
-		this.appendView(this.updateBox);
+		left.appendView(this.updateBox);
 
 		Updater.checkAppUpdate().then((r) => {
 			if(r !== false) {
@@ -92,11 +97,11 @@ class WalletHomeScreen extends Screen {
 			}
 		})
 
-		this.appendView(new SubHeader("История"));
+		right.appendView(new SubHeader("Недавние операции"));
 
 		this.historyBox = Utils.inflate({type: "div", class: "history"});
 		this.historyBox.appendView(new TextView("info", "Loading history..."));
-		this.appendView(this.historyBox);
+		right.appendView(this.historyBox);
 	}
 
 	showSendUI() {
@@ -140,12 +145,6 @@ class WalletHomeScreen extends Screen {
 				var history = this.walletData.history;
 				for(var a = history.length-1; a >=0; a--)
 					box.appendView(this.buildHistoryRow(history[a]));
-				box.appendView(new RowView()
-					.setTitle("Вся история транзакций")
-					.setIcon("history")
-					.setOnClickListener(() => {
-						new HistoryScreen().start();
-					}))
 			}
 		}
 	}
@@ -323,14 +322,14 @@ class SendScreen extends Screen {
 
 		this.appendView(sumView);
 
-		var tiv = new TextInputView()
+		var tiv = new TextInput()
 			.setTitle("Адрес получателя")
 			.fromString(this.address ? this.address : "")
 			.setHolder("Lxxxxx");
 
 		this.appendView(tiv);
 
-		var civ = new TextInputView()
+		var civ = new TextInput()
 			.setTitle("Коментарий для получателя")
 			.fromString(this.comment ? this.comment : "")
 			.setHolder("Не обязательно");

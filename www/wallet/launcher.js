@@ -133,17 +133,22 @@ class BootMenu extends Screen {
 
 	waitForSelect() {return new Promise((resolve, reject) => {
 		var ctx = this, wallets = mWallet.launcherTools.getWallets();
-		if(mWallet.hasNative) {
-			this.appendView(new RowView()
-				.setTitle("Локальный кошелёк")
-				.setIcon("account_balance_wallet")
-				.setOnClickListener(() => {
-					resolve("native::");
-					ctx.finish();
-				}));
-			this.appendView(new SubHeader("Другие аккаунты"));
-		}
+		if(mWallet.hasNative) this.appendView(new RowView()
+			.setTitle("Локальный кошелёк")
+			.setIcon("account_balance_wallet")
+			.setOnClickListener(() => {
+				resolve("native::");
+				ctx.finish();
+			}));
 
+		this.appendView(new RowView()
+			.setTitle("Управление")
+			.setIcon("settings")
+			.setOnClickListener(() => {
+				new AccountsEditScreen().start();
+			}))
+
+		this.appendView(new SubHeader("Другие аккаунты"));
 		for(var a in wallets)
 			this.addWalletRow(wallets[a], resolve);
 	})}
@@ -160,33 +165,14 @@ class BootMenu extends Screen {
 	}
 }
 
-/*class LauncherScreen extends Screen {
-	constructor(forceMenu) {
-		super();
-		this.forceMenu = forceMenu;
-	}
-
+class AccountsEditScreen extends Screen {
 	onCreate() {
-		console.log("launching...")
-		this.setMode(Screen.MODE_ROOT);
 		var ctx = this;
-		if(!localStorage.myWallets) localStorage.myWallets = "[]";
-		var wallets = JSON.parse(localStorage.myWallets);
-		if(mWallet.hasNative && wallets.length < 1 && !this.forceMenu) {
-			// No alternative wallets, load native...
-			console.log("loading default native wallet...");
-			this.loadNativeDefault();
-		} else if(!mWallet.hasNative && wallets.length == 1 && !this.forceMenu) {
-			// No native wallet, one non-native...
-			console.log("loading single wallet...");
-			this.loadWallet(wallets[0]);
-		} else {
-			// Show menu
-			console.log("loading menu...");
-			this.setTitle("Выбор кошелька");
-			if(this.forceMenu) this.setHomeAsUpAction();
-			this.listWallets();
-		}
+		var wallets = mWallet.launcherTools.getWallets();
+		// Show menu
+		this.setTitle("Выбор кошелька");
+		this.setHomeAsUpAction();
+		this.listWallets();
 	}
 
 	listWallets() {
@@ -199,7 +185,7 @@ class BootMenu extends Screen {
 				.setTitle("Локальный кошелёк")
 				.setIcon("account_balance_wallet")
 				.setOnClickListener(() => {
-					ctx.loadNativeDefault();
+					ctx.reloadDialog();
 				}));
 
 		this.appendView(new RowView()
@@ -239,7 +225,7 @@ class BootMenu extends Screen {
 		var row = new RowView()
 			.setTitle(name)
 			.setOnClickListener(() => {
-				ctx.loadWallet(data);
+				ctx.reloadDialog();
 			});
 
 		row.setAction("изменить", "more_vert", () => {
@@ -302,33 +288,19 @@ class BootMenu extends Screen {
 			})).show();
 	}
 
-	loadNativeDefault() {
-		window.wallet_id = "";
-		mWallet.launchNative();
-	}
-
 	createWallet(type, name) {
 		var wallets = JSON.parse(localStorage.myWallets);
 		var data = type+":"+type+wallets.length+":"+name;
 		wallets[wallets.length] = data;
 		localStorage.myWallets = JSON.stringify(wallets);
 		this.listWallets();
-		this.loadWallet(data);
+		this.reloadDialog();
 	}
 
-	loadWallet(data) {
-		if(this.forceMenu) {
+	reloadDialog() {
+		new Confirm().setMessage("Вы моете сменить кошелёк при запуске приложения. Перезапустить проиложение?")
+		.setOnConfirmListener(() => {
 			location.reload();
-			return;
-		}
-		var type = data.split(":")[0],
-			id = data.split(":")[1],
-			name = data.substr(type.length+id.length+2);
-
-		mWallet.server.id = id;
-		mWallet.launchWallet(type).then(() => {
-			console.log("we are ready...");
-			new PostLauncherScreem().start();
-		});
+		}).show();
 	}
-}*/
+}

@@ -16,6 +16,11 @@ class Updater {
 class ToolsScreen extends Screen {
 	onCreate() {
 		this.setHomeAsUpAction();
+
+		this.addAction(new MenuItem("перезапустить", "refresh", () => {
+			location.reload();
+		}));
+
 		if(this.showDonate()) this.appendView(new RowView()
 			.setIcon("pets")
 			.setTitle("Задонатить разработчику mWallet LTV")
@@ -25,18 +30,11 @@ class ToolsScreen extends Screen {
 					.start();
 			}));
 
-		if(mWallet.settings) this.appendView(new RowView()
-			.setIcon("settings")
-			.setTitle("Настройки аккаунта")
-			.setOnClickListener(() => {
-				mWallet.settings();
-			}));
-
 		this.appendView(new RowView()
 			.setIcon("settings")
 			.setTitle("Аккаунты")
 			.setOnClickListener(() => {
-				new LauncherScreen(true).start();
+				new AccountsEditScreen().start();
 			}));
 
 		if(mWallet.exit) this.appendView(new RowView()
@@ -47,6 +45,14 @@ class ToolsScreen extends Screen {
 			}))
 
 		this.appendView(new SubHeader("Настройки кошелька"));
+		if(mWallet.server.settings) this.appendView(new RowView()
+			.setIcon("account_circle")
+			.setTitle("Аккаунт")
+			.setSummary("Логин, пароль, т. п.")
+			.setOnClickListener(() => {
+				mWallet.server.settings();
+			}));
+
 		this.appendView(new RowView()
 			.setIcon("arrow_downward")
 			.setTitle("Майнинг")
@@ -64,7 +70,7 @@ class ToolsScreen extends Screen {
 
 class LockScreen extends Screen {
 	unlock() {var ctx = this; return new Promise((resolve, reject) => {
-		var te = new TextInputView()
+		var te = new TextInput()
 			.setTitle("Пароль")
 			.setType("password");
 
@@ -167,7 +173,7 @@ class MinerCfgScreen extends Screen {
 
 	dialogThreads() {
 		var dialog = new Dialog();
-		var prompt = new TextInputView();
+		var prompt = new TextInput();
 		var ctx = this;
 		prompt.setTitle("Количество потоков");
 		prompt.setType("number");
@@ -198,6 +204,6 @@ class ConsoleScreen extends Screen {
 		this.setHomeAsUpAction();
 		this.logbox = Utils.inflate({type: "div"});
 		this.appendView(this.logbox);
-		this.input = new TextInputView();
+		this.input = new TextInput();
 	}
 }

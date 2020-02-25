@@ -15,7 +15,10 @@ function createWindow () {
   });
 
   globalShortcut.register('CommandOrControl+D', () => {
-  	showDebugger();
+    showDebugger();
+  });
+  globalShortcut.register('CommandOrControl+R', () => {
+    location.reload();
   });
 
   win.removeMenu();

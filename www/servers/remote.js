@@ -37,11 +37,8 @@ class RemoteSettingsScreen extends Screen {
 	}
 
 	onCreate() {
-		if(this.edit) {
-			this.showEditor();
+		if(this.openedFromSettings)
 			this.setHomeAsUpAction();
-			return;
-		}
 
 		var ctx = this;
 
@@ -68,7 +65,7 @@ class RemoteSettingsScreen extends Screen {
 			.setText("Connect")
 			.setOnClickListener(() => {
 				ctx.save();
-				ctx.tryConnect().then(() => {
+				mWallet.server.try().then(() => {
 					ctx.resolve();
 					ctx.finish();
 				}).catch(() => {
@@ -78,16 +75,16 @@ class RemoteSettingsScreen extends Screen {
 	}
 
 	save() {
-		localStorage[wallet_id+"_url"] = this.formUrl.toString();
-		localStorage[wallet_id+"_port"] = this.formPort.toString();
-		localStorage[wallet_id+"_login"] = this.formLogin.toString();
-		localStorage[wallet_id+"_passwd"] = this.formPasswd.toString();
+		localStorage[mWallet.server.id+"_url"] = this.formUrl.toString();
+		localStorage[mWallet.server.id+"_port"] = this.formPort.toString();
+		localStorage[mWallet.server.id+"_login"] = this.formLogin.toString();
+		localStorage[mWallet.server.id+"_passwd"] = this.formPasswd.toString();
 		mWallet.server.loadSaved();
 	}
 }
 
 if(!mWallet.server.isLocal) mWallet.server.settings = function() {
-	new PostLauncherScreem(true).start();
+	new RemoteSettingsScreen(true).start();
 }
 
 mWallet.sendCmd = function(args) {return new Promise(function(resolve,reject) {
