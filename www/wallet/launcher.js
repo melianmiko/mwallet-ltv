@@ -2,15 +2,17 @@ window.mWallet = {
 	hasNative: false,
 	server: {},
 	platform: {},
-	settings : false,
+	allowAccountSettings: true,
+	showDonate: true,
 	launcherTools: {}
 };
 
 mWallet.launch = function() {
 	if(!mWallet.launcherTools._stateView) {
 		// Create state view screen
+		// TODO: Use splash screen!
 		var ss = new Screen();
-		ss.setMode(Screen.MODE_ROOT);
+		ss.markAsRoot();
 		ss.setTitle("Подождите...");
 		ss.start();
 		mWallet.launcherTools._stateView = ss;
@@ -128,7 +130,7 @@ mWallet.launcherTools.loadWallet = function(data) {return new Promise((resolve, 
 class BootMenu extends Screen {
 	onCreate() {
 		this.setTitle("Выберите кошелёк");
-		this.setMode(Screen.MODE_ROOT);
+		this.markAsRoot();
 	}
 
 	waitForSelect() {return new Promise((resolve, reject) => {

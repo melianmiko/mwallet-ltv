@@ -17,34 +17,12 @@ class ToolsScreen extends Screen {
 	onCreate() {
 		this.setHomeAsUpAction();
 
-		this.addAction(new MenuItem("перезапустить", "refresh", () => {
+		this.addAction(new MenuItem("Перезапустить", "refresh", () => {
 			location.reload();
 		}));
 
-		if(this.showDonate()) this.appendView(new RowView()
-			.setIcon("pets")
-			.setTitle("Задонатить разработчику mWallet LTV")
-			.setOnClickListener(function(){
-				new SendScreen("LSBBmSdZhEKvDZ6C1yd1ejc6a9h76qXAu2", 
-					null, "Спасибо за приложение")
-					.start();
-			}));
+		// =====================================================
 
-		this.appendView(new RowView()
-			.setIcon("settings")
-			.setTitle("Аккаунты")
-			.setOnClickListener(() => {
-				new AccountsEditScreen().start();
-			}));
-
-		if(mWallet.exit) this.appendView(new RowView()
-			.setIcon("exit_to_app")
-			.setTitle("Завершить приложение")
-			.setOnClickListener(function() {
-				mWallet.exit();
-			}))
-
-		this.appendView(new SubHeader("Настройки кошелька"));
 		if(mWallet.server.settings) this.appendView(new RowView()
 			.setIcon("account_circle")
 			.setTitle("Аккаунт")
@@ -60,11 +38,50 @@ class ToolsScreen extends Screen {
 			.setOnClickListener(function(){
 				new MinerCfgScreen().start();
 			}));
+
+		// =========================================================
+
+		this.appendView(new SubHeader("Дополнительно"));
+		if(mWallet.platform.settings) this.appendView(new RowView()
+			.setIcon("dashboard")
+			.setTitle("Общие настройки")
+			.setOnClickListener(() => {
+				mWallet.platform.settings();
+			}));
+
+		if(mWallet.allowAccountSettings) this.appendView(new RowView()
+			.setIcon("account_box")
+			.setTitle("Мои аккаунты")
+			.setOnClickListener(() => {
+				new AccountsEditScreen().start();
+			}));
+
+		this.appendView(new RowView()
+			.setIcon("build")
+			.setTitle("Консоль отладки")
+			.setOnClickListener(() => {
+				new ConsoleScreen().start();
+			}));
+
+		if(this.showDonate()) this.appendView(new RowView()
+			.setIcon("favorite")
+			.setTitle("Поддержать разработчика приложения")
+			.setOnClickListener(function(){
+				new SendScreen("LSBBmSdZhEKvDZ6C1yd1ejc6a9h76qXAu2", 
+					null, "Спасибо за приложение")
+					.start();
+			}));
+
+		if(mWallet.exit) this.appendView(new RowView()
+			.setIcon("exit_to_app")
+			.setTitle("Выйти")
+			.setOnClickListener(function() {
+				mWallet.exit();
+			}))
 	}
 
 	showDonate() {
-		// TODO: Show donate button after 1 week
-		return false
+		return globalWalletData.balance > 250;
 	}
 }
 
@@ -201,9 +218,55 @@ class MinerCfgScreen extends Screen {
 
 class ConsoleScreen extends Screen {
 	onCreate() {
+		var ctx = this;
 		this.setHomeAsUpAction();
-		this.logbox = Utils.inflate({type: "div"});
+		this.setTitle("Daemon console");
+
+		this.logbox = Utils.inflate({type: "div", class: "console-log"});
+		var inframe = Utils.inflate({type: "div", class: "console-input-frame", childs: {
+			input: {type: "input"},
+			sendBtn: {type: "i", class: "material-icons", inner: "play_arrow"}
+		}})
+
+		this.logIn("Добро пожаловать!");
+		this.logIn("Это - консоль отладки. Она используется для тестирования приложения и управления функциями, которых нет в обычных меню");
+		this.logErr("Никогда не набирайте и не вставляйте сюда команды, предназначение которых вам не известно. Этим часто пользуются мошенники!");
+		this.logOut("");
+		this.logOut("P. S. Кнопка Enter на клавиатуре не работает. Разработчик уже знает, ждите фикса.");
+		this.logOut("");
+
 		this.appendView(this.logbox);
-		this.input = new TextInput();
+		this.appendView(inframe);
+		inframe.input.placeholder = "Input your command here...";
+
+		inframe.sendBtn.onclick = function() {
+			var cmd = inframe.input.value.split(" ");
+			console.log(cmd);
+			inframe.input.value = "";
+			ctx.logOut(cmd);
+			mWallet.sendCmd(cmd).then(function(res) {
+				ctx.logIn(res);
+			}).catch(function(e) {
+				ctx.logErr(e);
+			})
+		};
+	}
+
+	logOut(text) {
+		if(typeof(text) == "object") text = JSON.stringify(text);
+		this.logbox.appendView(Utils.inflate({type: "div", class: "out", 
+			inner: "> "+text}));
+	}
+
+	logIn(text) {
+		if(typeof(text) == "object") text = JSON.stringify(text);
+		this.logbox.appendView(Utils.inflate({type: "div", class: "in",
+			inner: "< "+text}));
+	}
+
+	logErr(text) {
+		if(typeof(text) == "object") text = JSON.stringify(text);
+		this.logbox.appendView(Utils.inflate({type: "div", class: "error",
+			inner: "E "+text}));
 	}
 }

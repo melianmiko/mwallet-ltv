@@ -10,6 +10,26 @@
 	color: #999;
 }
 
+.console-input-frame {display: flex; border-top: 1px solid #eee;}
+.console-input-frame > input {
+	flex: 1; border: none; background: none;
+	padding: 4px; font-family: monospace;
+}
+.console-input-frame > i {
+	padding: 8px; color: #f09;
+	font-size: 24px;
+}
+
+.console-log {font-family: monospace; font-size: 14px; }
+.console-log > div {
+	margin: 4px; border-bottom: thin #eee solid;
+    word-break: break-word;
+    overflow-wrap: break-word;
+}
+.console-log > .out {color: gray;}
+.console-log > .in {color: blue;}
+.console-log > .error {color: red;}
+
 .fw-textview-style-hashrate,
 .fw-textview-style-title3 {
 	margin: 8px 16px;

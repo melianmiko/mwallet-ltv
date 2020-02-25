@@ -13,7 +13,7 @@ class WalletHomeScreen extends Screen {
 		this.walletData = new WalletDataProvider();
 		globalWalletData = this.walletData;
 
-		this.setMode(Screen.MODE_ROOT);
+		this.markAsRoot();
 
 		this.createLayout();
 		this.setupTimers();
@@ -247,7 +247,15 @@ class TransactionViewScreen extends Screen {
 
 	onCreate() {
 		this.setHomeAsUpAction();
-		this.setTitle("Сведения");
+
+		if(this.data.category == "send") this.appendView(new RowView()
+			.setTitle("Повторить")
+			.setIcon("refresh")
+			.setOnClickListener(() => {
+				new SendScreen(this.data.address, this.data.amount, this.data.comment).start();
+			}));
+
+		this.appendView(new SubHeader("Сведения"));
 
 		this.appendView(new RowView()
 			.setTitle("Адрес")
