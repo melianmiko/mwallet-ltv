@@ -143,7 +143,7 @@ class BootMenu extends Screen {
 				ctx.finish();
 			}));
 
-		this.appendView(new RowView()
+		if(mWallet.allowAccountSettings) this.appendView(new RowView()
 			.setTitle("Управление")
 			.setIcon("settings")
 			.setOnClickListener(() => {
@@ -173,6 +173,7 @@ class AccountsEditScreen extends Screen {
 		var wallets = mWallet.launcherTools.getWallets();
 		// Show menu
 		this.setTitle("Выбор кошелька");
+		this.addMod(new RightSideScreenMod());
 		this.setHomeAsUpAction();
 		this.listWallets();
 	}
@@ -212,6 +213,13 @@ class AccountsEditScreen extends Screen {
 			.setOnClickListener(function() {
 				dialog.hide();
 				ctx.createWallet("remote", "New remote server")
+			}));
+		dialog.appendView(new RowView()
+			.setTitle("Псевдо-кошелёк")
+			.setSummary("Эмулятор кошелька, для тестирования")
+			.setOnClickListener(function() {
+				dialog.hide();
+				ctx.createWallet("debug", "Debug wallet")
 			}));
 
 		dialog.show();

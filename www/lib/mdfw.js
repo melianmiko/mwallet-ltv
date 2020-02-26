@@ -67,6 +67,54 @@
 "use strict";class Confirm{constructor(){this.okbtn="Ok";this.cancelbtn="Cancel"}setPositiveButtonText(t){this.okbtn=t;return this}setNegativeButtonText(t){this.cancelbtn=t;return this}setTitle(t){this.title=t;return this}setMessage(m){this.message=m;return this}setOnConfirmListener(c){this.click=c;return this}show(){var c=this;var d=new Dialog().setMessage(this.message).setTitle(this.title).setOnCancelListener(this.oncancel).addButton(new Button().setText(this.cancelbtn).setOnClickListener(function(){d.hide(true)})).addButton(new Button().setText(this.okbtn).setOnClickListener(function(){d.hide();c.click()})).show()}setOnCancelListener(c){this.oncancel=c;return this}}
 "use strict";class Dialog{constructor(){this.buttons=[];this.views=[];this.title="";this.message=""}setTitle(t){this.title=t;return this}setMessage(m){this.message=m;return this}addButton(b){if(!b.IS_VIEW)return false;this.buttons[this.buttons.length]=b;return this}appendView(v){if(!v.IS_VIEW)return false;this.views[this.views.length]=v;return this}show(){if(this.shown)return Log.w("FWDialog","Dialog can't be shown repeatedly! Create new instance of class and then show it!");var m=new ModalWindow().setOnCancelListener(this.oncancel),t=Utils.inflate({type:"div",class:"textbox"});m.appendView(t);if(this.title)t.appendView(Utils.inflate({type:"header",class:"title",inner:this.title}));if(this.message)t.appendView(Utils.inflate({type:"div",class:"message",inner:this.message}));for(var a in this.views)m.appendView(this.views[a]);var btns=Utils.inflate({type:"div",class:"buttons"});for(var a in this.buttons)btns.appendChild(this.buttons[a].getBlock());m.appendView(btns);this.shown=true;this.modal=m;m.show();return this}hide(c){this.modal.hide(c)}setOnCancelListener(c){this.oncancel=c;return this}}
 "use strict";/**
+ * Screen part
+ */class Fragment{// Can be used as view
+get IS_VIEW(){return true}/**
+	 * Default constructor for Fragment
+	 * @param {*} data Anything taht you want give for `onCreate` method
+	 */constructor(data){var t=this;this.onInit();/**
+		 * Constructor data backup
+		 */this._bundle=data;/**
+		 * Fragment root block
+		 * @type {HTMLElement}
+		 */this._activity_root=Utils.inflate({type:"div",class:"fragment"});/**
+		 * Callback object
+		 */this._callback={}}/**
+	 * Remove all actions from action bar
+	 */wipeActions(){try{this._callback.wipeActions()}catch(e){console.warn("Callback can't wipe actions")}}/**
+	 * Add action to activity topbar.
+	 * @param {MenuItem} item Item to add
+	 */addAction(item){try{this._callback.addAction(item)}catch(e){console.warn("Callback can't add actions")}}/**
+	 * Use item as screen home action.
+	 * @param {MenuItem} item Item
+	 */setHomeAction(item){try{this._callback.setHomeAction(item)}catch(e){console.warn("Callback can't set home action")}}/**
+	 * Enable back button as home action.
+	 */setHomeAsUpAction(){try{this._callback.setHomeAsUpAction()}catch(e){console.warn("Callback can't set home action as home")}}/**
+	 * Set screen title in action bar
+	 * @param {string} title Title
+	 */setTitle(title){try{this._callback.setTitle(title)}catch(e){console.warn("Callback can't set title")}}/**
+	 * Add automatic call to `onUpdate` in interval
+	 * 
+	 * @todo Remove old timer before install new
+	 * @param {number} timer Refresh time in ms
+	 */doAutoUpdate(timer){let c=this;c._refresh_timer=setInterval(function(){c.onUpdate()},timer)}/**
+	 * Append view to screen.
+	 * 
+	 * If `view.IS_FIXED_VIEW == true`, view will be added to callback screen
+	 * 
+	 * @param {View} view View to append
+	 */appendView(view){if(!view.IS_VIEW)return false;if(view.IS_FIXED_VIEW)try{this._callback.appendView(view)}catch(e){console.warn("Callback can't add view")}else this._activity_root.appendChild(view.getBlock())}/**
+	 * Remove all activity contents, except config and fixed views
+	 */wipeContents(){this._activity_root.innerHTML=""}// Events
+/**
+	 * Event listener, calls on fragment building
+	 * @param {*} data User-rpovided data from constructor
+	 */onCreate(data){Log.w("Screen","onCreate is not overriden!")}/**
+	 * Event listener, calls on fragment refresh or manually
+	 */onUpdate(){}/**
+	 * Build fragment and return root block
+	 */getBlock(){this.onCreate(this._bundle);this.onUpdate();return this._activity_root}}
+"use strict";/**
  * Transparent overlay to lock touch (mouse) input.
  */class InputLock{/**
 	 * Default contructor
@@ -138,7 +186,9 @@
 		 */this._ab_right=[];/**
 		 * Current action bar scroll mode.
 		 * See `Screen.setScrollMode(mode)`
-		 */this._ab_scrollmod=0;this._activity_contents.addEventListener("scroll",function(){t._ab_scrolltrg()});this.initScrollMode()}/**
+		 */this._ab_scrollmod=0;/** 
+		 * Is screen dismiss allowed?
+		 */this._allow_dismiss=true;this._activity_contents.addEventListener("scroll",function(){t._ab_scrolltrg()});this.initScrollMode()}/**
 	 * Set action bar behavior on page scroll.
 	 * 
 	 * Use `Screen.AB_MODE_*` constants to provide mode.
@@ -204,8 +254,12 @@ root.container.z_right.innerHTML="";for(var a in this._ab_right)root.container.z
 	 *
 	 * Root screen can't be dismissed, don't use animations
 	 * and etc.
-	 */markAsRoot(){this.addMod(new NoAnimationScreenMod);//this.allowDismiss(false);
-}/**
+	 */markAsRoot(){this.addMod(new NoAnimationScreenMod);this.allowDismiss(false)}/**
+	 * Allow window close by dismiss events
+	 * Examples: outside click
+	 */allowDismiss(isAllowed){this._allow_dismiss=isAllowed}/**
+	 * Dismiss window, if allowed
+	 */dismiss(){if(!this._allow_dismiss)return;this.finish()}/**
 	 * Returns scrolling block from activity.
 	 * Used to setup onScroll listeners.
 	 * 
@@ -306,7 +360,11 @@ this._root.classList.remove("expanded");this._root.style.maxWidth=null;for(var a
 	   *
 	   * @returns Column view
 	   */getColumnRoot(id){return this._columns[id]}}
+"use strict";class LeftSideScreenMod{install(screen){console.warn("LeftSideScreenMod is experimental!");screen._activity_root.classList.add("sidescreen-left");// Install event listeners
+screen._activity_root.addEventListener("click",function(){screen.dismiss()});screen._activity_root.root.addEventListener("click",function(e){e.preventDefault();e.stopPropagation()})}}
 "use strict";class NoAnimationScreenMod{install(screen){screen._activity_root.classList.add("noanim")}}
+"use strict";class RightSideScreenMod{install(screen){console.warn("RightSideScreenMod is experimental!");screen._activity_root.classList.add("sidescreen-right");// Install event listeners
+screen._activity_root.addEventListener("click",function(){screen.dismiss()});screen._activity_root.root.addEventListener("click",function(e){e.preventDefault();e.stopPropagation()})}}
 "use strict";class WideScreenMod{install(screen){screen._activity_root.classList.add("widescreen")}}
 "use strict";/**
  * Logs provider class
@@ -544,6 +602,118 @@ this.contents.style.display="none";this._icon="keyboard_arrow_down";var b=super.
 	 * Add whitespace to toolbar
 	 */addSeparator(){this.block.appendChild(Utils.inflate({type:"a"}));return this}}
 "use strict";class BigTextInput extends TextInput{constructor(){super();this.block=Utils.inflate({type:"div",class:"fw-listitem textedit",childs:{titlebx:{type:"div",class:"item-title"},editor:{type:"textarea",class:"input ta"}}});this.block.editor.onkeyup=function(){this.style.height="25px";this.style.height=this.scrollHeight+"px"}}getBlock(){var b=super.getBlock();Utils.timer(50).then(function(){b.editor.onkeyup()});return b}fromString(value){super.fromString(value);this.block.editor.onkeyup();return this}}
+// /**
+//  * Screen with bottom navigation on mobile (or left side for desktop)
+//  */
+// class BottomNavigationScreen extends Screen {
+// 	/**
+// 	 * Bottom navigation layout
+// 	 */
+// 	static get BN_LAYOUT() {return {type: "div", class: "fw-bns-root", contains: {
+// 		fragmentHost: {type: "div", class: "fragment-host"},
+// 		menuHost: {type: "div", class: "extended-menu", contains: {
+// 			navTopBox: {type: "div"},
+// 			desktopOnlyMenu: {type: "div", class: "fw-nav-menu desktop-menu"},
+// 			extendedMenu: {type: "div", class: "fw-nav-menu"},
+// 			navBottomBox: {type: "div"}
+// 		}},
+// 		bottomNav: {type: "div", class: "bottom-nav"}
+// 	}}};
+// 	/**
+// 	 * Default constructor
+// 	 */
+// 	constructor() {
+// 		super();
+// 		/**
+// 		 * Bottom nav icons limit
+// 		 */
+// 		this._bn_icons_limit = 4;
+// 		/**
+// 		 * Is extended menu icon visible?
+// 		 */
+// 		this._bn_show_extended = true;
+// 		/**
+// 		 * Current fragment
+// 		 */
+// 		this._current = -1;
+// 		/**
+// 		 * Page fragments array
+// 		 */
+// 		this._pages = [];
+// 		/**
+// 		 * Page fragment titles array
+// 		 */
+// 		this._page_titles = [];
+// 		/**
+// 		 * Page fragment icons array
+// 		 */
+// 		this._page_icons = [];
+// 		/**
+// 		 * Host root
+// 		 */
+// 		this._host = Utils.inflate(BottomNavigationScreen.BN_LAYOUT);
+// 	}
+// 	/**
+// 	 * Do activity build and display
+// 	 */
+// 	 start() {
+// 	 	// Create BottomNavigationScreen
+// 	 	this.addMod(new WideScreenMod());
+// 	 	// Do default screen creation
+// 	 	super.start();
+// 	 }
+// 	 /**
+// 	  * Add fragment to iterator
+// 	  */
+// 	addFragment(fragment, title, icon) {
+// 		var id = this._pages.length;
+// 		this._pages[id] = fragment;
+// 		this._page_titles[id] = title;
+// 		this._page_icons[id] = icon;
+// 		if(this._current < 0) openFragment(0);
+// 		_rebuildMenus();
+// 		return id;
+// 	 }
+// 	 /**
+// 	  * Navigate to fragment with id
+// 	  */
+// 	 openFragment(id) {
+// 	 	this._current = id;
+// 	 	this._host.fragmentHost.innerHTML = "";
+// 	 	var fragment = new this._pages[id];
+// 	 	this._host.fragmentHost.appendView(fragment);
+// 	 	this._rebuildMenus();
+// 	 }
+// 	 /**
+// 	  * Rebuild navigation menus
+// 	  */
+// 	 _rebuildMenus() {
+// 	 }
+// 	 /**
+// 	  * Set bottom navigation icons limit.
+// 	  * Default: 4
+// 	  */
+// 	 setIconsLimit(limit) {
+// 	 	this._bn_icons_limit = limit;
+// 	 	this._rebuildMenus();
+// 	 }
+// 	 /**
+// 	  * Show extended menu icon in bottom navigation
+// 	  * Default: true
+// 	  */
+// 	 setShowExtendedMenuIcon(bool) {
+// 	 	this._bn_show_extended = bool;
+// 	 	this._rebuildMenus();
+// 	 }
+// 	/**
+// 	 * Append view to screen.
+// 	 * Disabled for this screen type
+// 	 */
+// 	appendView() {
+// 		console.warn("You can't directly append views to BottomNavigationScreen");
+// 	}
+// }
+"use strict";
 "use strict";/**
  * Framework setings screen.
  * 
@@ -562,7 +732,7 @@ this.contents.style.display="none";this._icon="keyboard_arrow_down";var b=super.
      */static get LOCALE(){return{fontSizeTitle:"Font size",accentColorTitle:"Accent color (HEX, empty to default)",reloadRequired:"Restart application to apply changes",cancel:"Cancel",ok:"Ok",nightmode:"Use black theme",daymode:"Use white theme"}}/**
      * OnCreate event override
      * @param {Object} loc Localization override
-     */onCreate(loc){var locale=FWSettingsScreen.LOCALE;if(loc)for(var a in loc)locale[a]=loc[a];this.setHomeAsUpAction();this.locale=locale;this.onUpdate()}/**
+     */onCreate(loc){var locale=FWSettingsScreen.LOCALE;if(loc)for(var a in loc)locale[a]=loc[a];this.addMod(new RightSideScreenMod);this.setHomeAsUpAction();this.locale=locale;this.onUpdate()}/**
      * OnUpdate event override
      */onUpdate(){var loc=this.locale,ctx=this;this.wipeContents();this.appendView(new RowView().setTitle(localStorage.fw_cfg_nightmode?loc.nightmode:loc.daymode).setIcon("wb_sunny").setSummary(loc.themeSummary).setOnClickListener(function(){if(localStorage.fw_cfg_nightmode=="true")localStorage.fw_cfg_nightmode="";else localStorage.fw_cfg_nightmode="true";FWInit.cfgInit()}));if(!localStorage.fw_cfg_font_size)localStorage.fw_cfg_font_size=1;this.appendView(new RowView().setTitle(loc.fontSizeTitle).setIcon("format_size").setSummary(Math.round(localStorage.fw_cfg_font_size*100)+"% of default").setOnClickListener(function(){var te=new TextInput().setTitle(loc.fontSizeTitle).fromString(Math.round(localStorage.fw_cfg_font_size*100));var d=new Dialog().appendView(te).addButton(new Button().setText(loc.cancel).setOnClickListener(function(){d.hide()})).addButton(new Button().setText(loc.ok).setOnClickListener(function(){console.log(te.toString()/100);localStorage.fw_cfg_font_size=te.toString()/100;d.hide();ctx.onUpdate()})).show()}));this.appendView(new RowView().setTitle(loc.accentColorTitle).setIcon("palette").setSummary(localStorage.fw_main_color).setOnClickListener(function(){var te=new TextInput().setTitle(loc.fontSizeTitle).fromString(localStorage.fw_main_color);var d=new Dialog().appendView(te).addButton(new Button().setText(loc.cancel).setOnClickListener(function(){d.hide()})).addButton(new Button().setText(loc.ok).setOnClickListener(function(){localStorage.fw_main_color=te.toString();d.hide();ctx.onUpdate()})).show()}));this.appendView(new TextView("info",loc.reloadRequired))}}
 "use strict";/**

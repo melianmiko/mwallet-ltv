@@ -247,6 +247,7 @@ class TransactionViewScreen extends Screen {
 
 	onCreate() {
 		this.setHomeAsUpAction();
+		this.addMod(new LeftSideScreenMod());
 
 		if(this.data.category == "send") this.appendView(new RowView()
 			.setTitle("Повторить")
@@ -281,6 +282,7 @@ class ReceiveScreen extends Screen {
 			url = "leadertvcoin:"+address,
 			ctx = this;
 
+		this.addMod(new LeftSideScreenMod());
 		this.setHomeAsUpAction();
 
 		this.qrview = Utils.inflate({type: "a", class: "qrview"});
@@ -319,6 +321,7 @@ class SendScreen extends Screen {
 	onCreate() {
 		var ctx = this;
 		this.setHomeAsUpAction();
+		this.addMod(new LeftSideScreenMod());
 
 		var sumView = Utils.inflate({type: "div", class: "sumEditor", childs: {
 			sumInput: {type: "input"},
@@ -399,7 +402,7 @@ class ExplorerScreen extends Screen {
 		this.setHomeAsUpAction();
 
 		this.appendView(new TextView("title", "Обзор"))
-		this.appendView(new RowView().setTitle("<b>Колчиество блоков: </b>"+globalWalletData.blockcount))
+		this.appendView(new RowView().setTitle("<b>Количество блоков: </b>"+globalWalletData.blockcount))
 
 		this.statusBox = Utils.inflate({type: "div"});
 		this.appendView(this.statusBox);
@@ -498,6 +501,7 @@ class HistoryScreen extends Screen {
 		var ctx = this;
 		this.offset = 0;
 		this.setHomeAsUpAction();
+		this.addMod(new LeftSideScreenMod());
 		this.setTitle("История операций")
 		this.box = Utils.inflate({type: "div"});
 		this.appendView(this.box);

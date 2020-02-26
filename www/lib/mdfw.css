@@ -206,29 +206,32 @@ body {
 
 .fw-screen {
   position: fixed;
-  top: 50%;
+  top: 0;
   left: 0;
   width: 100%;
   height: 100%;
   font-family: "Roboto", Arial, sans;
-  background: #ffffff;
-  box-shadow: 0px 0px 4px 4px rgba(0, 0, 0, 0.1);
-  transition: top 0.35s, opacity 0.35s;
-  opacity: 0;
+  background: transparent;
+  transition: background 0.35s;
 }
 .fw-screen.show {
+  background: rgba(0, 0, 0, 0.05);
+}
+.fw-screen.show > .fw-root-container {
   top: 0;
   opacity: 1;
 }
-.fw-screen.noanim {
+.fw-screen.noanim > .fw-root-container {
   transition: none;
-}
-.fw-screen.widescreen > .fw-root-container > .box-contents > .holder > .container {
-  max-width: 100%;
 }
 .fw-screen > .fw-root-container {
   position: relative;
   height: 100%;
+  top: 50%;
+  transition: top 0.35s, opacity 0.35s;
+  opacity: 0;
+  background: #ffffff;
+  box-shadow: 0px 0px 4px 4px rgba(0, 0, 0, 0.1);
 }
 .fw-screen > .fw-root-container > .box-contents {
   width: 100%;
@@ -418,6 +421,33 @@ body {
   flex: 1;
 }
 
+.fw-screen.widescreen > .fw-root-container > .box-contents > .holder > .container {
+  max-width: 100%;
+}
+
+@media all and (min-width: 720px) {
+  .fw-screen.sidescreen-right .fw-root-container {
+    top: 0;
+    right: -50%;
+    transition: right 0.5s;
+    width: 22.5rem;
+    position: absolute;
+  }
+  .fw-screen.sidescreen-right.show > .fw-root-container {
+    right: 0;
+  }
+
+  .fw-screen.sidescreen-left .fw-root-container {
+    top: 0;
+    left: -50%;
+    transition: left 0.5s;
+    width: 22.5rem;
+    position: absolute;
+  }
+  .fw-screen.sidescreen-left.show > .fw-root-container {
+    left: 0;
+  }
+}
 .fw-fab {
   position: absolute;
   right: 0;

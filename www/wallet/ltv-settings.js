@@ -14,8 +14,13 @@ class Updater {
 }
 
 class ToolsScreen extends Screen {
+	isBigScreen() {
+		return (document.body.getBoundingClientRect().width > 720);
+	}
+
 	onCreate() {
 		this.setHomeAsUpAction();
+		this.addMod(new RightSideScreenMod());
 
 		this.addAction(new MenuItem("Перезапустить", "refresh", () => {
 			location.reload();
@@ -121,6 +126,7 @@ class LockScreen extends Screen {
 class MinerCfgScreen extends Screen {
 	onCreate() {
 		var ctx = this;
+		this.addMod(new RightSideScreenMod());
 
 		this.threads = -1;
 		this.setHomeAsUpAction();
