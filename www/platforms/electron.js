@@ -26,7 +26,9 @@ mWallet.platform.launchNative = function() {return new Promise((resolve,reject) 
 		else return true;
 	}).then((d) => {
 		mWallet.launcherTools.updateState("Создание подключения...");
-		mWallet.server.isLocal = true;;
+		mWallet.server.isLocal = true;
+		mWallet.allowBackup = true;
+		mWallet.allowRecovery = true;
 		mWallet.server.url = "127.0.0.1";
 		mWallet.server.port = 16314;
 		mWallet.server.login = "leadertv";

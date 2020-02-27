@@ -3,6 +3,8 @@ window.mWallet = {
 	server: {},
 	platform: {},
 	allowAccountSettings: true,
+	allowBackup: false,
+	allowRecovery: false,
 	showDonate: true,
 	launcherTools: {}
 };

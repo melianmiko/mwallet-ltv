@@ -17,6 +17,8 @@
 		 */Config.unfocusEnabled=true}/**
 	 * Getter of main accent color from framework skin
 	 */static get mainColor(){if(localStorage.fw_main_color)return localStorage.fw_main_color;return Config._mainColor}/**
+	 * Get default main color (ignore settings override)
+	 */static get defaultColor(){return Config._mainColor}/**
 	 * Setter of main accent color from framework skin
 	 */static set mainColor(c){Config._mainColor=c;ColorFix.execute()}}
 "use strict";/**
@@ -307,7 +309,7 @@ clearInterval(context._refresh_timer);il.enable();Utils.timer(50).then(function(
      * Initialize framework.
      */static init(){if(FWInit.asdzx_init_complete)return Log.w("Init","Secondary init call is blocked!");Config._init();FWInit.cfgInit();FWInit.asdzx_init_complete=true}/**
      * Parse local framework settings
-     */static cfgInit(){if(localStorage.fw_cfg_font_size)document.documentElement.style.fontSize=localStorage.fw_cfg_font_size+"rem";localStorage.fw_cfg_nightmode?document.documentElement.classList.add("fw-bcfg-darkmode"):document.documentElement.classList.remove("fw-bcfg-darkmode")}}FWInit.init();
+     */static cfgInit(){if(localStorage.fw_cfg_font_size)document.documentElement.style.fontSize=localStorage.fw_cfg_font_size+"rem";localStorage.fw_cfg_nightmode?document.documentElement.classList.add("darktheme"):document.documentElement.classList.remove("darktheme")}}FWInit.init();
 "use strict";/**
  * Expandable layout view
  * 
@@ -540,6 +542,36 @@ this.contents.style.display="none";this._icon="keyboard_arrow_down";var b=super.
 	 * @param {string} style Style id
 	 * @returns {Button} self-return
 	 */setStyle(style){this.mBlock.className="fw-button "+style;this.style=style;this._reDecorate();return this}}
+"use strict";/**
+ * Checkbox widget.
+ *
+ * Example:
+ * ```js
+ * new Checkbox().setTitle("Enable dark theme")
+ *     .setChecked(true).setOnCheckedListener((isChecked) => {
+ *	       localStorage.darkTheme = isChecked;
+ * 	   })
+ * ```
+ */class Checkbox{get IS_VIEW(){return true}/**
+	 * Default constructor
+	 */constructor(){var ctx=this;this._root=Utils.inflate({type:"div",class:"fw-checkbox-view",childs:{cbIcon:{type:"i",class:"material-icons"},cbTitle:{type:"span",class:"label"}}});this._root.cbIcon.style.color=Config.mainColor;this._root.onclick=function(){ctx.setChecked(!ctx._isChecked)};this.setChecked(false)}/**
+	 * Get view root block
+	 */getBlock(){return this._root}/**
+	 * Set checkbox checked state
+	 * @param status Is checked now?
+	 * @return this class
+	 */setChecked(status){this._isChecked=status;if(status)this._root.cbIcon.innerHTML="check_box";else this._root.cbIcon.innerHTML="check_box_outline_blank";this._onCheckedStateChanged(this._isChecked);return this}/**
+	 * Set checkbox title (label)
+	 * @param title Checkbox label
+	 * @return this class
+	 */setTitle(title){this._root.cbTitle.innerHTML=title;return this}/**
+	 * Set on checked state listener function
+	 * @param fnc Callback function
+	 * @return this class
+	 */setOnCheckedListener(fnc){this._onCheckedStateChanged=fnc;return this}/**
+	 * Is checkbox checked?
+	 * @return true if checked
+	 */isChecked(){return this._isChecked}_onCheckedStateChanged(){}}
 "use strict";class FloatingActionButton{get IS_VIEW(){return true}get IS_FIXED_VIEW(){return true}static get MODE_DEFAULT(){return"fab-default"}static get MODE_SMALL(){return"fab-small"}static get MODE_EXPAND(){return"fab-expand"}static get MODE_HIDE(){return"fab-default hide"}constructor(){this.button=Utils.inflate({type:"div",class:"fw-fab "+FloatingActionButton.MODE_DEFAULT,childs:{icon:{type:"i",class:"material-icons"},textview:{type:"a",class:"fab-text"}}});this.button.style.backgroundColor=Config.mainColor}setIcon(icon){this.button.icon.innerHTML=icon;return this}setTitle(title){this.button.textview.innerHTML=title;return this}setMode(mode){this.button.className="fw-fab "+mode;return this}setOnClickListener(c){this.button.onclick=c;return this}attachScreen(screen,modea,modeb){var ctx=this,prev=screen._activity_root.scrollTop;ctx.setMode(modea);screen.getScrollerBlock().addEventListener("scroll",function(){var df=prev-this.scrollTop;ctx.setMode(df>0?modea:modeb);prev=this.scrollTop});return this}getBlock(){return this.button}}
 "use strict";/**
  * Spin animation view widget
@@ -556,7 +588,7 @@ this.contents.style.display="none";this._icon="keyboard_arrow_down";var b=super.
  * Text input widget. Based on HTML Input.
  */class TextInput{get IS_VIEW(){return true}/**
 	 * Default contructor
-	 */constructor(){this.block=Utils.inflate({type:"div",class:"fw-listitem textedit",childs:{titlebx:{type:"div",class:"item-title"},editor:{type:"input",class:"input"}}})}/**
+	 */constructor(){this.block=Utils.inflate({type:"div",class:"fw-textinput",childs:{titlebx:{type:"div",class:"title"},editor:{type:"input",class:"input"}}})}/**
 	 * Mark input as readonly
 	 */makeReadonly(){this.block.editor.setAttribute("readonly","true");this.block.classList.add("readonly");return this}/**
 	 * Remove readonly mark
@@ -601,7 +633,7 @@ this.contents.style.display="none";this._icon="keyboard_arrow_down";var b=super.
 	 */add(title,icon,click){var i=new IconView(icon).disableColor().getBlock();i.title=title;i.onclick=click;this.block.appendChild(i);return this}/**
 	 * Add whitespace to toolbar
 	 */addSeparator(){this.block.appendChild(Utils.inflate({type:"a"}));return this}}
-"use strict";class BigTextInput extends TextInput{constructor(){super();this.block=Utils.inflate({type:"div",class:"fw-listitem textedit",childs:{titlebx:{type:"div",class:"item-title"},editor:{type:"textarea",class:"input ta"}}});this.block.editor.onkeyup=function(){this.style.height="25px";this.style.height=this.scrollHeight+"px"}}getBlock(){var b=super.getBlock();Utils.timer(50).then(function(){b.editor.onkeyup()});return b}fromString(value){super.fromString(value);this.block.editor.onkeyup();return this}}
+"use strict";class BigTextInput extends TextInput{constructor(){super();this.block=Utils.inflate({type:"div",class:"fw-textinput",childs:{titlebx:{type:"div",class:"title"},editor:{type:"textarea",class:"input ta"}}});this.block.editor.onkeyup=function(){this.style.height="25px";this.style.height=this.scrollHeight+"px"}}getBlock(){var b=super.getBlock();Utils.timer(50).then(function(){b.editor.onkeyup()});return b}fromString(value){super.fromString(value);this.block.editor.onkeyup();return this}}
 // /**
 //  * Screen with bottom navigation on mobile (or left side for desktop)
 //  */
@@ -729,12 +761,58 @@ this.contents.style.display="none";this._icon="keyboard_arrow_down";var b=super.
  * ```
  */class FWSettingsScreen extends Screen{/**
      * Localization strings (default, english)
-     */static get LOCALE(){return{fontSizeTitle:"Font size",accentColorTitle:"Accent color (HEX, empty to default)",reloadRequired:"Restart application to apply changes",cancel:"Cancel",ok:"Ok",nightmode:"Use black theme",daymode:"Use white theme"}}/**
+     */static get LOCALE(){return{cancel:"Cancel",ok:"Ok",apply:"Restart and apply",darkTheme:"Dark theme",bigMode:"Interface scale",restartRequired:"Application restart required to apply this changes.",titleColorAccent:"Color"}}/**
+     * Colors palette
+     */static get COLORS(){return["#0099FF","#0099CC","#FF9900","#DD0000","#FF0099","#FFCC00","#0033FF","#0011CC","#FF00DD","#333333","#555555","#AAAAAA"]}/**
      * OnCreate event override
      * @param {Object} loc Localization override
-     */onCreate(loc){var locale=FWSettingsScreen.LOCALE;if(loc)for(var a in loc)locale[a]=loc[a];this.addMod(new RightSideScreenMod);this.setHomeAsUpAction();this.locale=locale;this.onUpdate()}/**
+     */onCreate(loc){var locale=FWSettingsScreen.LOCALE;if(loc)for(var a in loc)locale[a]=loc[a];this.addMod(new RightSideScreenMod);this.setHomeAsUpAction();this.addAction(new MenuItem(locale.apply,"checkbox",()=>{location.reload()}));this.locale=locale;this.appendView(new Checkbox().setTitle(locale.darkTheme).setChecked(localStorage.fw_cfg_nightmode==="true").setOnCheckedListener(isChecked=>{localStorage.fw_cfg_nightmode=isChecked?"true":""}));this.appendView(new Checkbox().setTitle(locale.bigMode).setChecked(localStorage.fw_cfg_font_size==="1.25").setOnCheckedListener(isChecked=>{if(isChecked)localStorage.fw_cfg_font_size="1.25";else localStorage.fw_cfg_font_size=""}));this.appendView(new SubHeader(locale.titleColorAccent));this._palette=Utils.inflate({type:"div",class:"fw-palette"});this.appendView(this._palette);this.updatePalette()}updatePalette(){this._palette.innerHTML="";this.addColor(Config.defaultColor);for(var a in FWSettingsScreen.COLORS){this.addColor(FWSettingsScreen.COLORS[a])}}addColor(color){var ctx=this;var view=Utils.inflate({type:"div",class:"color "+(Config.mainColor==color?"selected":"")});view.onclick=function(){localStorage.fw_main_color=color;ctx.updatePalette()};view.style.backgroundColor=color;this._palette.appendView(view)}/**
      * OnUpdate event override
-     */onUpdate(){var loc=this.locale,ctx=this;this.wipeContents();this.appendView(new RowView().setTitle(localStorage.fw_cfg_nightmode?loc.nightmode:loc.daymode).setIcon("wb_sunny").setSummary(loc.themeSummary).setOnClickListener(function(){if(localStorage.fw_cfg_nightmode=="true")localStorage.fw_cfg_nightmode="";else localStorage.fw_cfg_nightmode="true";FWInit.cfgInit()}));if(!localStorage.fw_cfg_font_size)localStorage.fw_cfg_font_size=1;this.appendView(new RowView().setTitle(loc.fontSizeTitle).setIcon("format_size").setSummary(Math.round(localStorage.fw_cfg_font_size*100)+"% of default").setOnClickListener(function(){var te=new TextInput().setTitle(loc.fontSizeTitle).fromString(Math.round(localStorage.fw_cfg_font_size*100));var d=new Dialog().appendView(te).addButton(new Button().setText(loc.cancel).setOnClickListener(function(){d.hide()})).addButton(new Button().setText(loc.ok).setOnClickListener(function(){console.log(te.toString()/100);localStorage.fw_cfg_font_size=te.toString()/100;d.hide();ctx.onUpdate()})).show()}));this.appendView(new RowView().setTitle(loc.accentColorTitle).setIcon("palette").setSummary(localStorage.fw_main_color).setOnClickListener(function(){var te=new TextInput().setTitle(loc.fontSizeTitle).fromString(localStorage.fw_main_color);var d=new Dialog().appendView(te).addButton(new Button().setText(loc.cancel).setOnClickListener(function(){d.hide()})).addButton(new Button().setText(loc.ok).setOnClickListener(function(){localStorage.fw_main_color=te.toString();d.hide();ctx.onUpdate()})).show()}));this.appendView(new TextView("info",loc.reloadRequired))}}
+     */ // onUpdate() {
+//     var loc = this.locale, ctx = this;
+//     this.wipeContents();
+//     this.appendView(new RowView().setTitle(localStorage.fw_cfg_nightmode ? loc.nightmode : loc.daymode)
+//         .setIcon("wb_sunny").setSummary(loc.themeSummary).setOnClickListener(function(){
+//             if(localStorage.fw_cfg_nightmode == "true") localStorage.fw_cfg_nightmode = "";
+//             else localStorage.fw_cfg_nightmode = "true";
+//             FWInit.cfgInit();
+//         }));
+//     if(!localStorage.fw_cfg_font_size) 
+//         localStorage.fw_cfg_font_size = 1;
+//     this.appendView(new RowView().setTitle(loc.fontSizeTitle)
+//         .setIcon("format_size")
+//         .setSummary(Math.round(localStorage.fw_cfg_font_size*100)+"% of default")
+//         .setOnClickListener(function(){
+//             var te = new TextInput().setTitle(loc.fontSizeTitle)
+//                 .fromString(Math.round(localStorage.fw_cfg_font_size*100));
+//             var d = new Dialog().appendView(te)
+//                 .addButton(new Button().setText(loc.cancel).setOnClickListener(function(){
+//                     d.hide();
+//                 })).addButton(new Button().setText(loc.ok).setOnClickListener(function(){
+//                     console.log(te.toString()/100);
+//                     localStorage.fw_cfg_font_size = te.toString()/100;
+//                     d.hide();
+//                     ctx.onUpdate();
+//                 })).show();
+//         }));
+//     this.appendView(new RowView().setTitle(loc.accentColorTitle)
+//         .setIcon("palette")
+//         .setSummary(localStorage.fw_main_color)
+//         .setOnClickListener(function(){
+//             var te = new TextInput().setTitle(loc.fontSizeTitle)
+//                 .fromString(localStorage.fw_main_color);
+//             var d = new Dialog().appendView(te)
+//                 .addButton(new Button().setText(loc.cancel).setOnClickListener(function(){
+//                     d.hide();
+//                 })).addButton(new Button().setText(loc.ok).setOnClickListener(function(){
+//                     localStorage.fw_main_color = te.toString();
+//                     d.hide();
+//                     ctx.onUpdate();
+//                 })).show();
+//         }));
+//         this.appendView(new TextView("info", loc.reloadRequired));
+// }
+}
 "use strict";/**
  * SlidingScreen - screen with multiple slides support.
  */class SlidingScreen extends Screen{/**
@@ -778,7 +856,7 @@ this.contents.style.display="none";this._icon="keyboard_arrow_down";var b=super.
      * @param {boolean} bool Is swipe enabled?
      */setSwipeEnabled(bool){this._ss_swipeOn=bool}/**
      * Init swipe events
-     */_ss_swipeinit(){var wrp=this._ss_view.wrapper,touchData={},context=this;wrp.ontouchstart=function(e){if(!context._ss_swipeOn)return;touchData.direction=null;touchData.startX=e.targetTouches[0].pageX;touchData.startY=e.targetTouches[0].pageY;touchData.startPos=this.getBoundingClientRect().left};wrp.ontouchmove=function(e){if(!context._ss_swipeOn)return;var rx=e.targetTouches[0].pageX-touchData.startX;var ry=e.targetTouches[0].pageY-touchData.startY;if(touchData.direction==null){if(rx>30||rx<-30)touchData.direction="h";else if(ry>30||ry<-30)touchData.direction="v"}if(touchData.direction=="h"){e.stopPropagation();e.preventDefault();this.style.left=touchData.startPos+rx+"px"}};wrp.ontouchend=function(e){if(!context._ss_swipeOn)return;if(touchData.direction!="h")return;var ex=e.changedTouches[0].pageX;var newPage=context._ss_active;if(ex<touchData.startX-75)newPage=context._ss_active+1;else if(ex>touchData.startX+75)newPage=context._ss_active-1;if(newPage==-1)newPage=0;else if(newPage>context._ss_pages.length-1)newPage=context._ss_pages.length-1;context.openPage(newPage)}}}/**
+     */_ss_swipeinit(){var wrp=this._ss_view.wrapper,touchData={},context=this;wrp.ontouchstart=function(e){if(!context._ss_swipeOn)return;touchData.direction=null;touchData.startX=e.targetTouches[0].pageX;touchData.startY=e.targetTouches[0].pageY;touchData.startPos=this.getBoundingClientRect().left};wrp.ontouchmove=function(e){if(!context._ss_swipeOn)return;var rx=e.targetTouches[0].pageX-touchData.startX;var ry=e.targetTouches[0].pageY-touchData.startY;if(touchData.direction==null){if(rx>30||rx<-30)touchData.direction="h";else if(ry>30||ry<-30)touchData.direction="v"}if(touchData.direction=="h"){e.stopPropagation();e.preventDefault();this.style.left=touchData.startPos+rx+"px"}};wrp.ontouchend=function(e){if(!context._ss_swipeOn)return;if(touchData.direction!="h")return;console.log(e);var ex=e.changedTouches[0].pageX;var newPage=context._ss_active;if(ex<touchData.startX-75)newPage=context._ss_active+1;else if(ex>touchData.startX+75)newPage=context._ss_active-1;if(newPage==-1)newPage=0;else if(newPage>context._ss_pages.length-1)newPage=context._ss_pages.length-1;context.openPage(newPage)}}}/**
  * Slide view widget
  */class SlideView{get IS_VIEW(){return true}/**
      * Default constructor
@@ -800,10 +878,10 @@ this.contents.style.display="none";this._icon="keyboard_arrow_down";var b=super.
      */open(){this.ctx.openPage(this.id)}}
 "use strict";class TestScreen extends Screen{onCreate(){var wl=new WaitlockView(this),ctx=this;this.setHomeAsUpAction();this.addMod(new WideScreenMod);// Expandable layout
 var exp=new ExpandableLayout,c1=exp.addColumn(360,400),c2=exp.addColumn(360,400);this.appendView(exp);// MAIN
-c1.appendView(new SubHeader("Tests"));c1.appendView(new RowView().setTitle("Widgets test page").setOnClickListener(function(){new TestScreen2().start()}));c1.appendView(new RowView().setTitle("SlidingScreen demo").setOnClickListener(function(){new TestScreen3().start()}));c1.appendView(new RowView().setTitle("Framework settings screen").setOnClickListener(function(){new FWSettingsScreen().start()}));c1.appendView(new RowView().setTitle("Set color and reopen").setOnClickListener(function(){var c="#";c+=Math.round(Math.random()*100);c+=Math.round(Math.random()*100);c+=Math.round(Math.random()*100);Config.mainColor=c;ctx.finish();new TestScreen().start()}));// FAB
+c1.appendView(new SubHeader("Tests"));c1.appendView(new RowView().setTitle("Widgets test page").setOnClickListener(function(){new TestScreen2().start()}));c1.appendView(new RowView().setTitle("SlidingScreen demo").setOnClickListener(function(){new TestScreen3().start()}));c1.appendView(new RowView().setTitle("Framework settings screen").setOnClickListener(function(){new FWSettingsScreen().start()}));// FAB
 c1.appendView(new SubHeader("Floating action button"));var fab=new FloatingActionButton().setIcon("star").setTitle("Star");c1.appendView(fab);c1.appendView(new RowView().setTitle("Default fab mode").setOnClickListener(function(){fab.setMode(FloatingActionButton.MODE_DEFAULT)}));c1.appendView(new RowView().setTitle("Small fab mode").setOnClickListener(function(){fab.setMode(FloatingActionButton.MODE_SMALL)}));c1.appendView(new RowView().setTitle("Expanded fab mode").setOnClickListener(function(){fab.setMode(FloatingActionButton.MODE_EXPAND)}));c1.appendView(new RowView().setTitle("Scroll listen, expanding").setOnClickListener(function(){fab.attachScreen(ctx,FloatingActionButton.MODE_EXPAND,FloatingActionButton.MODE_DEFAULT)}));c1.appendView(new RowView().setTitle("Scroll listen, hide").setOnClickListener(function(){fab.attachScreen(ctx,FloatingActionButton.MODE_DEFAULT,FloatingActionButton.MODE_HIDE)}));// AB
 c2.appendView(new SubHeader("AB tests"));c2.appendView(new RowView().setTitle("AB SM Hide").setOnClickListener(function(){ctx.setScrollMode(Screen.AB_MODE_HIDE)}));c2.appendView(new RowView().setTitle("AB SM None").setOnClickListener(function(){ctx.setScrollMode(Screen.AB_MODE_NONE)}));c2.appendView(new RowView().setTitle("Set a very long title").setOnClickListener(function(){ctx.setTitle("Very very very very very very long title")}));c2.appendView(new RowView().setTitle("Add some actions to AB").setOnClickListener(function(){ctx.addAction(new MenuItem("action","android"));ctx.addAction(new MenuItem("action2","apple"))}));// ETC
-c2.appendView(new SubHeader("etc"));c2.appendView(new RowView().setTitle("Wipe page").setOnClickListener(function(){ctx.wipeContents()}));c2.appendView(wl);c2.appendView(new RowView().setTitle("Enable waitlockview for 5 seconds").setOnClickListener(function(){wl.show();Utils.timer(5000).then(function(){console.log("ok");wl.hide()}).catch(function(e){console.warn(e)})}))}}class TestScreen2 extends Screen{onCreate(){var tv=new TextInput().setTitle("Text input demo").setHolder("Empty"),tv2=new TextInput().setTitle("Password input demo").setHolder("Empty").setType("password"),tv3=new BigTextInput().setTitle("Big input demo").setHolder("Empty");this.setHomeAsUpAction();this.setTitle("Widgets test mode!");var tb=new Toolbar;this.appendView(tb);tb.add("android","android",function(){alert(1)});tb.add("check","check",function(){alert(2)});tb.addSeparator();tb.add("undo","undo",function(){alert(3)});var sp=new SpoilerView().setTitle("Spoiler test").setSummary("Tap to open!");sp.appendView(new RowView().setTitle("Hidden row!"));this.appendView(sp);this.appendView(new SubHeader("Input tests"));this.appendView(tv);this.appendView(tv2);this.appendView(tv3);this.appendView(new RowView().setTitle("Show value").setOnClickListener(function(){new Alert().setTitle("Text form value:").setMessage(tv.toString()).show()}).setOnLongTouchListener(function(){new Alert().setTitle("Long tap!").show()}));this.appendView(new Spinner);this.appendView(new TextView("info","This is info TextView!"));this.appendView(new Button().setText("Default button"));this.appendView(new Button().setStyle(Button.STYLE_CONTAINED).setText("Contained button"));this.appendView(new Button().setStyle(Button.STYLE_FLAT).setText("Flat button"));this.appendView(new Button().setStyle(Button.STYLE_OUTLINE).setText("Flat button"));this.appendView(new SubHeader("RowView tests"));this.appendView(new RowView().setTitle("Single-line"));this.appendView(new RowView().setTitle("Single-line with icon").setIcon("android"));this.appendView(new RowView().setTitle("Single-line with icon and action").setIcon("android").setAction("Hello","more_vert",function(){new Alert().setMessage("Hello!").show()}));this.appendView(new RowView().setSummary("Description").setTitle("Two-line"));this.appendView(new RowView().setSummary("Description").setTitle("Two-line with icon").setIcon("android").setOnClickListener(function(){}));this.appendView(new RowView().setSummary("Description").setTitle("Two-line with icon and action").setIcon("android").setAction("Hello","more_vert",function(){new Alert().setTitle("It is menu!").setMessage("Hello, World!").setOnClickListener(function(){console.log(2)}).show()}))}}class TestScreen3 extends SlidingScreen{onCreate(){this.setHomeAsUpAction()}onUpdate(){this.wipe();var a=this.newPage(),b=this.newPage(),ctx=this;a.appendView(new TextView("title","Page 1"));for(var i=0;i<50;i++)a.appendView(new RowView().setTitle("Row A"+i));b.appendView(new TextView("title","Page 2"));for(var i=0;i<50;i++)b.appendView(new RowView().setTitle("Row B"+i).setOnClickListener(function(){ctx.onUpdate()}))}}/*
+c2.appendView(new SubHeader("etc"));c2.appendView(new RowView().setTitle("Wipe page").setOnClickListener(function(){ctx.wipeContents()}));c2.appendView(wl);c2.appendView(new RowView().setTitle("Enable waitlockview for 5 seconds").setOnClickListener(function(){wl.show();Utils.timer(5000).then(function(){console.log("ok");wl.hide()}).catch(function(e){console.warn(e)})}))}}class TestScreen2 extends Screen{onCreate(){var tv=new TextInput().setTitle("Text input demo").setHolder("Empty"),tv2=new TextInput().setTitle("Password input demo").setHolder("Empty").setType("password"),tv3=new BigTextInput().setTitle("Big input demo").setHolder("Empty");this.setHomeAsUpAction();this.setTitle("Widgets test mode!");var tb=new Toolbar;this.appendView(tb);tb.add("android","android",function(){alert(1)});tb.add("check","check",function(){alert(2)});tb.addSeparator();tb.add("undo","undo",function(){alert(3)});var sp=new SpoilerView().setTitle("Spoiler test").setSummary("Tap to open!");sp.appendView(new RowView().setTitle("Hidden row!"));this.appendView(sp);this.appendView(new Checkbox().setTitle("Checkbox!"));this.appendView(new SubHeader("Input tests"));this.appendView(tv);this.appendView(tv2);this.appendView(tv3);this.appendView(new RowView().setTitle("Show value").setOnClickListener(function(){new Alert().setTitle("Text form value:").setMessage(tv.toString()).show()}).setOnLongTouchListener(function(){new Alert().setTitle("Long tap!").show()}));this.appendView(new Spinner);this.appendView(new TextView("info","This is info TextView!"));this.appendView(new Button().setText("Default button"));this.appendView(new Button().setStyle(Button.STYLE_CONTAINED).setText("Contained button"));this.appendView(new Button().setStyle(Button.STYLE_FLAT).setText("Flat button"));this.appendView(new Button().setStyle(Button.STYLE_OUTLINE).setText("Outlined button"));this.appendView(new SubHeader("RowView tests"));this.appendView(new RowView().setTitle("Single-line"));this.appendView(new RowView().setTitle("Single-line with icon").setIcon("android"));this.appendView(new RowView().setTitle("Single-line with icon and action").setIcon("android").setAction("Hello","more_vert",function(){new Alert().setMessage("Hello!").show()}));this.appendView(new RowView().setSummary("Description").setTitle("Two-line"));this.appendView(new RowView().setSummary("Description").setTitle("Two-line with icon").setIcon("android").setOnClickListener(function(){}));this.appendView(new RowView().setSummary("Description").setTitle("Two-line with icon and action").setIcon("android").setAction("Hello","more_vert",function(){new Alert().setTitle("It is menu!").setMessage("Hello, World!").setOnClickListener(function(){console.log(2)}).show()}))}}class TestScreen3 extends SlidingScreen{onCreate(){this.setHomeAsUpAction()}onUpdate(){this.wipe();var a=this.newPage(),b=this.newPage(),ctx=this;a.appendView(new TextView("title","Page 1"));for(var i=0;i<50;i++)a.appendView(new RowView().setTitle("Row A"+i));b.appendView(new TextView("title","Page 2"));for(var i=0;i<50;i++)b.appendView(new RowView().setTitle("Row B"+i).setOnClickListener(function(){ctx.onUpdate()}))}}/*
 class TestScreen2 extends Screen {
     onCreate() {
         this.setHomeAsUpAction();

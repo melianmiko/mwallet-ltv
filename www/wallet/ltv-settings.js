@@ -26,6 +26,10 @@ class ToolsScreen extends Screen {
 			location.reload();
 		}));
 
+		if(mWallet.exit) this.addAction(new MenuItem("Выйти", "exit_to_app", () => {
+			mWallet.exit();
+		}))
+
 		// =====================================================
 
 		if(mWallet.server.settings) this.appendView(new RowView()
@@ -37,12 +41,30 @@ class ToolsScreen extends Screen {
 			}));
 
 		this.appendView(new RowView()
+			.setIcon("palette")
+			.setTitle("Внешний вид")
+			.setSummary("Тема, цвет, размер интерфейса (бета)")
+			.setOnClickListener(() => {
+				new FWSettingsScreen().start();
+			}));
+
+		this.appendView(new RowView()
 			.setIcon("arrow_downward")
 			.setTitle("Майнинг")
 			.setSummary("Настройки генерации криптовалюты")
 			.setOnClickListener(function(){
 				new MinerCfgScreen().start();
 			}));
+
+		if(mWallet.allowBackup || mWallet.allowRecovery) {
+			this.appendView(new RowView()
+				.setIcon("restore")
+				.setTitle("Копирование и восстановление")
+				.setSummary("Ремонт кошелька, автобэкап")
+				.setOnClickListener(function(){
+					new RecoverySettingsScreen().start();
+				}));
+		}
 
 		// =========================================================
 
@@ -76,13 +98,6 @@ class ToolsScreen extends Screen {
 					null, "Спасибо за приложение")
 					.start();
 			}));
-
-		if(mWallet.exit) this.appendView(new RowView()
-			.setIcon("exit_to_app")
-			.setTitle("Выйти")
-			.setOnClickListener(function() {
-				mWallet.exit();
-			}))
 	}
 
 	showDonate() {
@@ -219,6 +234,23 @@ class MinerCfgScreen extends Screen {
 
 	showPoSUI() {
 
+	}
+}
+
+class RecoverySettingsScreen extends Screen {
+	onCreate() {
+		this.setHomeAsUpAction();
+		this.addMod(new RightSideScreenMod());
+
+		if(mWallet.allowBackup) this.appendView(new RowView()
+			.setTitle("Создать резервную копию")
+			.setOnClickListener(() => {mWallet.createBackup();}))
+		if(mWallet.allowBackup) this.appendView(new RowView()
+			.setTitle("Восстановить резервную копию")
+			.setOnClickListener(() => {mWallet.restoreBackup();}))
+		if(mWallet.allowRecovery) this.appendView(new RowView()
+			.setTitle("Ремонт кошелька")
+			.setOnClickListener(() => {mWallet.recovery()}))
 	}
 }
 
