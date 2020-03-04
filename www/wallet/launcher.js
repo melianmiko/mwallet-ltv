@@ -1,4 +1,5 @@
 window.mWallet = {
+	locales: ["ru"],
 	hasNative: false,
 	server: {},
 	platform: {},
@@ -15,19 +16,21 @@ mWallet.launch = function() {
 		// TODO: Use splash screen!
 		var ss = new Screen();
 		ss.markAsRoot();
-		ss.setTitle("Подождите...");
+		ss.setTitle("Wait...");
 		ss.start();
 		mWallet.launcherTools._stateView = ss;
 	}
 
-	mWallet.launcherTools.updateState("Запуск...");
-	mWallet.launcherTools.launchPlatform().then(() => {
+	mWallet.launcherTools.loadLocale().then(() => {
+		mWallet.launcherTools.updateState(appLocale.launcher.stage_platform);
+		return mWallet.launcherTools.launchPlatform();
+	}).then(() => {
 		// After platform load
-		mWallet.launcherTools.updateState("Поиск кошелька...");
+		mWallet.launcherTools.updateState(appLocale.launcher.stage_findWallet);
 		return mWallet.launcherTools.selectWallet();
 	}).then((wallet) => {
 		// After wallet selection
-		mWallet.launcherTools.updateState("Запуск кошелька...");
+		mWallet.launcherTools.updateState(appLocale.launcher.stage_loadWallet);
 		return mWallet.launcherTools.loadWallet(wallet);
 	}).then(() => {
 		// We are ready...
@@ -39,6 +42,26 @@ mWallet.launch = function() {
 		console.error(e);
 		new Alert().setMessage(e).show();
 	})
+}
+
+mWallet.launcherTools.loadLocale = function() {
+	var locale = navigator.language;
+	if(!!localStorage.appLocale) locale = localStorage.appLocale;
+	if(mWallet.locales.indexOf(locale) < 0) locale = mWallet.locales[0];
+
+	return new Promise((resolve, reject) => {
+		console.log("Loading locale "+locale+"...");
+		var scr = document.createElement("script");
+		scr.src = "locale/"+locale+".js";
+		scr.onload = function() {
+			console.log("Localed loaded!");
+			resolve(true);
+		};
+		scr.onerror = function() {
+			reject("Locale file load error");
+		}
+		document.body.appendChild(scr);
+	});
 }
 
 mWallet.launcherTools.updateState = function(text) {
@@ -131,14 +154,14 @@ mWallet.launcherTools.loadWallet = function(data) {return new Promise((resolve, 
 
 class BootMenu extends Screen {
 	onCreate() {
-		this.setTitle("Выберите кошелёк");
+		this.setTitle(appLocale.launcher.wallets_selectScreenTitle);
 		this.markAsRoot();
 	}
 
 	waitForSelect() {return new Promise((resolve, reject) => {
 		var ctx = this, wallets = mWallet.launcherTools.getWallets();
 		if(mWallet.hasNative) this.appendView(new RowView()
-			.setTitle("Локальный кошелёк")
+			.setTitle(appLocale.launcher.wallet_native)
 			.setIcon("account_balance_wallet")
 			.setOnClickListener(() => {
 				resolve("native::");
@@ -146,13 +169,13 @@ class BootMenu extends Screen {
 			}));
 
 		if(mWallet.allowAccountSettings) this.appendView(new RowView()
-			.setTitle("Управление")
+			.setTitle(appLocale.launcher.wallets_editButton)
 			.setIcon("settings")
 			.setOnClickListener(() => {
 				new AccountsEditScreen().start();
 			}))
 
-		this.appendView(new SubHeader("Другие аккаунты"));
+		this.appendView(new SubHeader(appLocale.launcher.wallets_other));
 		for(var a in wallets)
 			this.addWalletRow(wallets[a], resolve);
 	})}
@@ -174,7 +197,7 @@ class AccountsEditScreen extends Screen {
 		var ctx = this;
 		var wallets = mWallet.launcherTools.getWallets();
 		// Show menu
-		this.setTitle("Выбор кошелька");
+		this.setTitle(appLocale.launcher.editor_title);
 		this.addMod(new RightSideScreenMod());
 		this.setHomeAsUpAction();
 		this.listWallets();
@@ -187,20 +210,20 @@ class AccountsEditScreen extends Screen {
 
 		if(mWallet.hasNative)
 			this.appendView(new RowView()
-				.setTitle("Локальный кошелёк")
+				.setTitle(appLocale.launcher.wallet_native)
 				.setIcon("account_balance_wallet")
 				.setOnClickListener(() => {
 					ctx.reloadDialog();
 				}));
 
 		this.appendView(new RowView()
-			.setTitle("Новый кошелёк")
+			.setTitle(appLocale.launcher.editor_newWallet)
 			.setIcon("add_circle")
 			.setOnClickListener(() => {
 				ctx.createMenu();
 			}));
 
-		this.appendView(new SubHeader("Аккаунты"));
+		this.appendView(new SubHeader(appLocale.launcher.editor_walletsSubtitle));
 
 		for(var a in wallets) {
 			this.addWalletRow(wallets[a]);
@@ -210,15 +233,15 @@ class AccountsEditScreen extends Screen {
 	createMenu() {
 		var dialog = new Dialog(), ctx = this;
 		dialog.appendView(new RowView()
-			.setTitle("Удалённый кошелёк")
-			.setSummary("Подключиться к серверу leadertvcoind")
+			.setTitle(appLocale.launcher.wallet_remote_title)
+			.setSummary(appLocale.launcher.wallet_remote_info)
 			.setOnClickListener(function() {
 				dialog.hide();
-				ctx.createWallet("remote", "New remote server")
+				ctx.createWallet("remote", "Remote server")
 			}));
 		dialog.appendView(new RowView()
-			.setTitle("Псевдо-кошелёк")
-			.setSummary("Эмулятор кошелька, для тестирования")
+			.setTitle(appLocale.launcher.wallet_fictive_title)
+			.setSummary(appLocale.launcher.wallet_fictive_info)
 			.setOnClickListener(function() {
 				dialog.hide();
 				ctx.createWallet("debug", "Debug wallet")
@@ -240,7 +263,7 @@ class AccountsEditScreen extends Screen {
 				ctx.reloadDialog();
 			});
 
-		row.setAction("изменить", "more_vert", () => {
+		row.setAction("options", "more_vert", () => {
 			ctx.editWallet(data);
 		})
 
@@ -250,13 +273,13 @@ class AccountsEditScreen extends Screen {
 	editWallet(data) {
 		var dialog = new Dialog(), ctx = this;
 		dialog.appendView(new RowView()
-			.setIcon("edit").setTitle("Переименовать")
+			.setIcon("edit").setTitle(appLocale.launcher.editor_rename)
 			.setOnClickListener(() => {
 				dialog.hide();
 				ctx.rename(data);
 			}));
 		dialog.appendView(new RowView()
-			.setIcon("delete").setTitle("Удалить")
+			.setIcon("delete").setTitle(appLocale.launcher.editor_remove)
 			.setOnClickListener(() => {
 				dialog.hide();
 				ctx.remove(data);
@@ -274,21 +297,21 @@ class AccountsEditScreen extends Screen {
 	}
 
 	rename(data) {
-		var ctx = this;``
+		var ctx = this;
 		var type = data.split(":")[0],
 			id = data.split(":")[1],
 			name = data.substr(type.length+id.length+2);
 
-		var ti = new TextInputView()
-			.setTitle("Новое название")
+		var ti = new TextInput()
+			.setTitle(appLocale.launcher.editor_rename_newTitle)
 			.fromString(name);
 
 		var dialog = new Dialog()
 			.appendView(ti)
-			.addButton(new Button().setText("Отмена").setOnClickListener(() => {
+			.addButton(new Button().setText(appLocale.launcher.editor_rename_cancel).setOnClickListener(() => {
 				dialog.hide();
 			}))
-			.addButton(new Button().setText("Переименовать").setOnClickListener(() => {
+			.addButton(new Button().setText(appLocale.launcher.editor_rename_confirm).setOnClickListener(() => {
 				dialog.hide();
 				name = ti.toString();
 				var newdata = type+":"+id+":"+name;
@@ -310,9 +333,23 @@ class AccountsEditScreen extends Screen {
 	}
 
 	reloadDialog() {
-		new Confirm().setMessage("Вы моете сменить кошелёк при запуске приложения. Перезапустить проиложение?")
+		new Confirm().setMessage(appLocale.launcher.editor_launch_confirm)
 		.setOnConfirmListener(() => {
 			location.reload();
 		}).show();
 	}
+}
+
+mWallet.crash = function(d) {
+	var d = new Dialog()
+		.setTitle(appLocale.launcher.crash_title)
+		.setMessage(d)
+		.addButton(new Button().setText(appLocale.launcher.btn_recovery).setOnClickListener(() => {
+			d.hide();
+			new RecoverySettingsScreen().start();
+		}))
+		.addButton(new Button().setText(appLocale.launcher.btn_ok).setOnClickListener(() => {
+			d.hide();
+		}))
+		.show();
 }

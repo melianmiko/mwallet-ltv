@@ -1,12 +1,14 @@
 {
   "name": "mwallet-ltv",
   "displayName": "mWallet LTV",
+  "email": "mhbrgn@gmail.com",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
     "start": "electron .",
-    "dist": "electron-builder"
+    "dist": "electron-builder",
+    "apk": "cordova build android"
   },
   "author": "",
   "license": "MIT",
@@ -18,6 +20,7 @@
   "dependencies": {
     "cordova-android": "^8.1.0",
     "electron-dl": "^3.0.0",
+    "electron-window-state": "^5.0.3",
     "md5-file": "^4.0.0"
   },
   "build": {

@@ -495,7 +495,7 @@ this.contents.style.display="none";this._icon="keyboard_arrow_down";var b=super.
 	 * Build new view
 	 * @param {string} style TextView style name
 	 * @param {string} value Text to display
-	 */constructor(style,value){this.blk=Utils.inflate({type:"div",inner:value,class:"fw-textview-style-"+style})}/**
+	 */constructor(style,value){this.blk=Utils.inflate({type:"div",inner:value,class:"fw-textview-style "+style})}/**
 	 * Returns block
 	 */getBlock(){return this.blk}/**
 	 * Set new text
@@ -766,7 +766,7 @@ this.contents.style.display="none";this._icon="keyboard_arrow_down";var b=super.
      */static get COLORS(){return["#0099FF","#0099CC","#FF9900","#DD0000","#FF0099","#FFCC00","#0033FF","#0011CC","#FF00DD","#333333","#555555","#AAAAAA"]}/**
      * OnCreate event override
      * @param {Object} loc Localization override
-     */onCreate(loc){var locale=FWSettingsScreen.LOCALE;if(loc)for(var a in loc)locale[a]=loc[a];this.addMod(new RightSideScreenMod);this.setHomeAsUpAction();this.addAction(new MenuItem(locale.apply,"checkbox",()=>{location.reload()}));this.locale=locale;this.appendView(new Checkbox().setTitle(locale.darkTheme).setChecked(localStorage.fw_cfg_nightmode==="true").setOnCheckedListener(isChecked=>{localStorage.fw_cfg_nightmode=isChecked?"true":""}));this.appendView(new Checkbox().setTitle(locale.bigMode).setChecked(localStorage.fw_cfg_font_size==="1.25").setOnCheckedListener(isChecked=>{if(isChecked)localStorage.fw_cfg_font_size="1.25";else localStorage.fw_cfg_font_size=""}));this.appendView(new SubHeader(locale.titleColorAccent));this._palette=Utils.inflate({type:"div",class:"fw-palette"});this.appendView(this._palette);this.updatePalette()}updatePalette(){this._palette.innerHTML="";this.addColor(Config.defaultColor);for(var a in FWSettingsScreen.COLORS){this.addColor(FWSettingsScreen.COLORS[a])}}addColor(color){var ctx=this;var view=Utils.inflate({type:"div",class:"color "+(Config.mainColor==color?"selected":"")});view.onclick=function(){localStorage.fw_main_color=color;ctx.updatePalette()};view.style.backgroundColor=color;this._palette.appendView(view)}/**
+     */onCreate(loc){var locale=FWSettingsScreen.LOCALE;if(loc)for(var a in loc)locale[a]=loc[a];this.addMod(new RightSideScreenMod);this.setHomeAsUpAction();this.addAction(new MenuItem(locale.apply,"check",()=>{location.reload()}));this.locale=locale;this.appendView(new Checkbox().setTitle(locale.darkTheme).setChecked(localStorage.fw_cfg_nightmode==="true").setOnCheckedListener(isChecked=>{localStorage.fw_cfg_nightmode=isChecked?"true":""}));this.appendView(new Checkbox().setTitle(locale.bigMode).setChecked(localStorage.fw_cfg_font_size==="1.25").setOnCheckedListener(isChecked=>{if(isChecked)localStorage.fw_cfg_font_size="1.25";else localStorage.fw_cfg_font_size=""}));this.appendView(new SubHeader(locale.titleColorAccent));this._palette=Utils.inflate({type:"div",class:"fw-palette"});this.appendView(this._palette);this.updatePalette()}updatePalette(){this._palette.innerHTML="";this.addColor(Config.defaultColor);for(var a in FWSettingsScreen.COLORS){this.addColor(FWSettingsScreen.COLORS[a])}}addColor(color){var ctx=this;var view=Utils.inflate({type:"div",class:"color "+(Config.mainColor==color?"selected":"")});view.onclick=function(){localStorage.fw_main_color=color;ctx.updatePalette()};view.style.backgroundColor=color;this._palette.appendView(view)}/**
      * OnUpdate event override
      */ // onUpdate() {
 //     var loc = this.locale, ctx = this;

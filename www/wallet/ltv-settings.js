@@ -34,89 +34,124 @@ class ToolsScreen extends Screen {
 
 		if(mWallet.server.settings) this.appendView(new RowView()
 			.setIcon("account_circle")
-			.setTitle("Аккаунт")
-			.setSummary("Логин, пароль, т. п.")
+			.setTitle(appLocale.toolsScreen.account)
+			.setSummary(appLocale.toolsScreen.account_info)
 			.setOnClickListener(() => {
 				mWallet.server.settings();
 			}));
 
-		this.appendView(new RowView()
-			.setIcon("palette")
-			.setTitle("Внешний вид")
-			.setSummary("Тема, цвет, размер интерфейса (бета)")
-			.setOnClickListener(() => {
-				new FWSettingsScreen().start();
-			}));
-
-		this.appendView(new RowView()
-			.setIcon("arrow_downward")
-			.setTitle("Майнинг")
-			.setSummary("Настройки генерации криптовалюты")
-			.setOnClickListener(function(){
-				new MinerCfgScreen().start();
-			}));
-
-		if(mWallet.allowBackup || mWallet.allowRecovery) {
-			this.appendView(new RowView()
-				.setIcon("restore")
-				.setTitle("Копирование и восстановление")
-				.setSummary("Ремонт кошелька, автобэкап")
-				.setOnClickListener(function(){
-					new RecoverySettingsScreen().start();
-				}));
-		}
-
-		// =========================================================
-
-		this.appendView(new SubHeader("Дополнительно"));
 		if(mWallet.platform.settings) this.appendView(new RowView()
 			.setIcon("dashboard")
-			.setTitle("Общие настройки")
+			.setTitle(appLocale.toolsScreen.system)
+			.setSummary(appLocale.toolsScreen.system_info)
 			.setOnClickListener(() => {
 				mWallet.platform.settings();
 			}));
 
+		this.appendView(new RowView()
+			.setIcon("palette")
+			.setTitle(appLocale.toolsScreen.ui)
+			.setSummary(appLocale.toolsScreen.ui_info)
+			.setOnClickListener(() => {
+				new FWSettingsScreen(appLocale.fwSettings).start();
+			}));
+
+		this.appendView(new RowView()
+			.setIcon("arrow_downward")
+			.setTitle(appLocale.toolsScreen.mining)
+			.setSummary(appLocale.toolsScreen.mining_info)
+			.setOnClickListener(function(){
+				new MinerCfgScreen().start();
+			}));
+
+		if(mWallet.allowBackup || mWallet.allowRecovery)
+			this.appendView(new RowView()
+				.setIcon("restore")
+				.setTitle(appLocale.toolsScreen.recover)
+				.setSummary(appLocale.toolsScreen.recover_info)
+				.setOnClickListener(function(){
+					new RecoverySettingsScreen().start();
+				}));
+
+		this.appendView(new RowView()
+			.setIcon("favorite")
+			.setTitle(appLocale.toolsScreen.donate)
+			.setSummary(appLocale.toolsScreen.donate_info)
+			.setOnClickListener(function(){
+				new DonateScreen().start();
+			}));
+
+		this.appendView(new RowView()
+			.setIcon("settings")
+			.setTitle(appLocale.toolsScreen.advanced)
+			.setSummary(appLocale.toolsScreen.advanced_info)
+			.setOnClickListener(() => {
+				new AdvancedSettingsScreen().start();
+			}));
+	}
+}
+
+class DonateScreen extends Screen {
+	onCreate() {
+		this.setHomeAsUpAction();
+		this.addMod(new RightSideScreenMod());
+
+		// TODO: Help with translation
+
+		this.appendView(new RowView()
+			.setTitle(appLocale.donateScreen.donate_ltv)
+			.setOnClickListener(() => {
+				new SendScreen(coinConfig.donateWallet, 
+					null, "Good work :-)")
+					.start();
+			}));
+
+		this.appendView(new RowView()
+			.setTitle(appLocale.donateScreen.donate_rub)
+			.setOnClickListener(() => {
+				mWallet.openBrowser(coinConfig.donateUrl);
+			}));
+
+		if(appLocale.localeInfo.donateLink) this.appendView(new RowView()
+			.setTitle(appLocale.donateScreen.donate_translator)
+			.setOnClickListener(() => {
+				mWallet.openBrowser(appLocale.localeInfo.donateLink);
+			}));
+	}
+}
+
+class AdvancedSettingsScreen extends Screen {
+	onCreate() {
+		this.setHomeAsUpAction();
+		this.addMod(new RightSideScreenMod());
+
 		if(mWallet.allowAccountSettings) this.appendView(new RowView()
-			.setIcon("account_box")
-			.setTitle("Мои аккаунты")
+			.setTitle(appLocale.advancedSettings.myaccounts)
 			.setOnClickListener(() => {
 				new AccountsEditScreen().start();
 			}));
 
 		this.appendView(new RowView()
-			.setIcon("build")
-			.setTitle("Консоль отладки")
+			.setTitle(appLocale.advancedSettings.console)
 			.setOnClickListener(() => {
 				new ConsoleScreen().start();
-			}));
-
-		if(this.showDonate()) this.appendView(new RowView()
-			.setIcon("favorite")
-			.setTitle("Поддержать разработчика приложения")
-			.setOnClickListener(function(){
-				new SendScreen("LSBBmSdZhEKvDZ6C1yd1ejc6a9h76qXAu2", 
-					null, "Спасибо за приложение")
-					.start();
-			}));
-	}
-
-	showDonate() {
-		return globalWalletData.balance > 250;
+			}))
 	}
 }
 
 class LockScreen extends Screen {
+	// TODO: Lock settings screen
 	unlock() {var ctx = this; return new Promise((resolve, reject) => {
 		var te = new TextInput()
-			.setTitle("Пароль")
+			.setTitle(appLocale.lockScreen.prompt_password)
 			.setType("password");
 
 		var d = new Dialog()
-			.setMessage("Для этой операции нужно раблокировать кошелёк. Введите ваш пароль:")
+			.setMessage(appLocale.lockScreen.alertUnlockRequired)
 			.appendView(te)
-			.addButton(new Button().setText("Отмена").setOnClickListener(() => {
+			.addButton(new Button().setText(appLocale.lockScreen.cancel).setOnClickListener(() => {
 				d.hide();
-			})).addButton(new Button().setText("Разблокировать").setOnClickListener(() => {
+			})).addButton(new Button().setText(appLocale.lockScreen.confirm_unlock).setOnClickListener(() => {
 				d.hide();
 				ctx.doUnlock(te.toString()).then(() => {
 					resolve();
@@ -130,7 +165,7 @@ class LockScreen extends Screen {
 		}).catch((e) => {
 			if(e.code == -14) {
 				// Invalid password
-				new Alert().setMessage("Неверный пароль").show();
+				new Alert().setMessage(appLocale.lockScreen.error_invalidPassword).show();
 			}
 			console.error(e);
 			reject(e);
@@ -149,7 +184,7 @@ class MinerCfgScreen extends Screen {
 
 		setInterval(function() {
 			ctx.update()
-		}, 5000);
+		}, 1500);
 
 		this.update();
 	}
@@ -162,32 +197,30 @@ class MinerCfgScreen extends Screen {
 	}
 
 	showPoWUI() {
-		var ctx = this;
+		var ctx = this, hr = this.getHashrate(),
+			isGenerate = globalWalletData.isGenerate;
+
 		this.wipeContents();
 
-		this.appendView(new TextView("hashrate", "Hashrate - "+this.getHashrate()))
-
-		if(globalWalletData.isGenerate)
-			this.appendView(new RowView()
-				.setTitle("Остановить генерацию")
-				.setIcon("stop")
-				.setOnClickListener(function() {
-					ctx.setGenerate(false);
-				}));
-		else
-			this.appendView(new RowView()
-				.setTitle("Запустить генерацию")
-				.setIcon("play_arrow")
-				.setOnClickListener(function() {
-					ctx.setGenerate(true);
-				}));
+		this.appendView(new RowView()
+			.setTitle(appLocale.minerSettings.toggle_main)
+			.setSummary(appLocale.minerSettings.toggle_main_info)
+			.setIcon(isGenerate ? "check_box" : "check_box_outline_blank")
+			.setOnClickListener(() => {
+				ctx.setGenerate(!isGenerate);
+				globalWalletData.updateWalletInfo();
+				ctx.update();
+			}));
 
 		this.appendView(new RowView()
-			.setTitle("Установить количество потоков")
+			.setTitle(appLocale.minerSettings.pow_threads_title)
 			.setIcon("account_tree")
 			.setOnClickListener(function() {
 				ctx.dialogThreads();
-			}))
+			}));
+
+		this.appendView(new TextView("info", "<b>"+appLocale.minerSettings.pow_hashrate_prefix+" - "+hr+"</b>"));
+		if(mWallet.server.isLocal) this.appendView(new TextView("info", appLocale.minerSettings.pow_bgmode_notice));
 	}
 
 	getHashrate() {
@@ -213,27 +246,27 @@ class MinerCfgScreen extends Screen {
 		var dialog = new Dialog();
 		var prompt = new TextInput();
 		var ctx = this;
-		prompt.setTitle("Количество потоков");
+		prompt.setTitle(appLocale.minerSettings.pow_threads_title);
 		prompt.setType("number");
 		dialog.appendView(prompt);
-		dialog.addButton(new Button().setText("Применить").setOnClickListener(function(){
+		dialog.addButton(new Button().setText(appLocale.minerSettings.action_apply).setOnClickListener(function(){
 			dialog.hide();
 			globalWalletData.threads = parseInt(prompt.toString());
 			ctx.setGenerate(true);
 		}));
-		dialog.addButton(new Button().setText("Неограничено").setOnClickListener(function(){
+		dialog.addButton(new Button().setText(appLocale.minerSettings.count_unlimited).setOnClickListener(function(){
 			dialog.hide();
 			globalWalletData.threads = -1;
 			ctx.setGenerate(true);
 		}));
-		dialog.addButton(new Button().setText("Отмена").setOnClickListener(function(){
+		dialog.addButton(new Button().setText(appLocale.minerSettings.cancel).setOnClickListener(function(){
 			dialog.hide();
 		}));
 		dialog.show();
 	}
 
 	showPoSUI() {
-
+		// TODO: PoS mining UI
 	}
 }
 
@@ -243,13 +276,13 @@ class RecoverySettingsScreen extends Screen {
 		this.addMod(new RightSideScreenMod());
 
 		if(mWallet.allowBackup) this.appendView(new RowView()
-			.setTitle("Создать резервную копию")
+			.setTitle(appLocale.recoverySettings.createBackup)
 			.setOnClickListener(() => {mWallet.createBackup();}))
 		if(mWallet.allowBackup) this.appendView(new RowView()
-			.setTitle("Восстановить резервную копию")
+			.setTitle(appLocale.recoverySettings.restoreBackup)
 			.setOnClickListener(() => {mWallet.restoreBackup();}))
 		if(mWallet.allowRecovery) this.appendView(new RowView()
-			.setTitle("Ремонт кошелька")
+			.setTitle(appLocale.recoverySettings.recovery)
 			.setOnClickListener(() => {mWallet.recovery()}))
 	}
 }
@@ -266,12 +299,14 @@ class ConsoleScreen extends Screen {
 			sendBtn: {type: "i", class: "material-icons", inner: "play_arrow"}
 		}})
 
-		this.logIn("Добро пожаловать!");
-		this.logIn("Это - консоль отладки. Она используется для тестирования приложения и управления функциями, которых нет в обычных меню");
-		this.logErr("Никогда не набирайте и не вставляйте сюда команды, предназначение которых вам не известно. Этим часто пользуются мошенники!");
+		this.logIn("Welcome!");
+		this.logIn("This is daemon debug shell. It can be used for tests and some specific tricks.");
+		this.logErr("WARRNING: Scammers are active! DO NOT USE COMMANDS IF YOU DON'T KNOW WHAT IT DO!!!");
 		this.logOut("");
-		this.logOut("P. S. Кнопка Enter на клавиатуре не работает. Разработчик уже знает, ждите фикса.");
+		this.logOut("P. S. Enter button don't work. To be fixed :-)");
 		this.logOut("");
+
+		// TODO: Enter button tracker
 
 		this.appendView(this.logbox);
 		this.appendView(inframe);

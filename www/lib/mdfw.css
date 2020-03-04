@@ -288,7 +288,7 @@ html.darktheme .fw-screen .fw-topbar.mode-elevate {
   background: #000000;
 }
 
-.fw-textview-style-title, .fw-textview-style-title-center {
+.fw-textview-style.title {
   font-size: 2em;
   font-weight: bold;
   margin: 1rem;
@@ -305,13 +305,13 @@ html.darktheme .fw-screen .fw-topbar.mode-elevate {
   user-select: none;
   cursor: default;
 }
-.fw-textview-style-title-center, .fw-textview-style-title-center-center {
+.fw-textview-style.title.center {
   text-align: center;
 }
-.fw-textview-style-p {
+.fw-textview-style.p {
   margin: 1rem;
 }
-.fw-textview-style-info {
+.fw-textview-style.info {
   margin: 0.5rem;
   font-size: 0.75rem;
   color: #00000098;
@@ -327,6 +327,10 @@ html.darktheme .fw-screen .fw-topbar.mode-elevate {
   /* Internet Explorer/Edge */
   user-select: none;
   cursor: default;
+}
+
+html.darktheme .fw-textview-style.info {
+  color: #ffffff98;
 }
 
 .fw-rowview {

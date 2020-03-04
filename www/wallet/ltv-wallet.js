@@ -20,11 +20,11 @@ class WalletHomeScreen extends Screen {
 		this.updateViews();
 		this.updateHistory();
 
-		this.addAction(new MenuItem("Обзор блокчейна", "explore", function(){
+		this.addAction(new MenuItem(appLocale.walletHome.action_explore, "explore", function(){
 			new ExplorerScreen().start();
 		}));
 
-		this.addAction(new MenuItem("Инструменты", "settings", function() {
+		this.addAction(new MenuItem(appLocale.walletHome.action_settings, "settings", function() {
 			new ToolsScreen().start();
 		}));
 
@@ -32,15 +32,10 @@ class WalletHomeScreen extends Screen {
 	}
 
 	firstStart() {
-		if(!localStorage.isDaemonNotifyShown) {
+		if(!localStorage.isDaemonNotifyShown && mWallet.server.isLocal) {
 			new Alert()
-				.setTitle("О фоновом режиме")
-				.setMessage("Один из компонентов приложения (leadertvcoind) остаётся активным "+
-					"даже после закрытия окна приложения. Сделано это для более быстрого запуска, плюс "+
-					"это позволяет майнить в фоновом режиме и обновлять данные. Но "+
-					"пока он запущен, вы не сможете запустить оригинальное приложение leadertvcoin. "+
-					"Для полного закрытия приложения используйте пункт \"Выйти\" в настройках.<br/><br/>"+
-					"Это сообщение больше не появится.")
+				.setTitle(appLocale.walletHome.bgMode_title)
+				.setMessage(appLocale.walletHome.bgMode_message)
 				.show();
 			localStorage.isDaemonNotifyShown = true;
 		}
@@ -58,25 +53,25 @@ class WalletHomeScreen extends Screen {
 
 		this.mainBalanceView = new TextView("balance-main", "-- LTV");
 		left.appendView(this.mainBalanceView);
-		this.unfonfirmedBalanceView = new TextView("balance-small", "Не подтверждено: 0 LTV");
+		this.unfonfirmedBalanceView = new TextView("balance-small", appLocale.walletHome.balance_unconfirmed+": 0 LTV");
 		left.appendView(this.unfonfirmedBalanceView);
-		this.immatureBalanceView = new TextView("balance-small", "Дозревают: 0 LTV");
+		this.immatureBalanceView = new TextView("balance-small", appLocale.walletHome.balance_pending+": 0 LTV");
 		left.appendView(this.immatureBalanceView);
 
 		var row = Utils.inflate({type: "div", class: "buttons-row"});
 		row.appendView(new Button()
 			.setStyle(Button.STYLE_OUTLINE)
-			.setText("Получить").setOnClickListener(() => {
+			.setText(appLocale.walletHome.action_receive).setOnClickListener(() => {
 				ctx.showGetUI();
 			}));
 		row.appendView(new Button()
 			.setStyle(Button.STYLE_OUTLINE)
-			.setText("Отправить").setOnClickListener(() => {
+			.setText(appLocale.walletHome.action_send).setOnClickListener(() => {
 				ctx.showSendUI();
 			}));
 		row.appendView(new Button()
 			.setStyle(Button.STYLE_OUTLINE)
-			.setText("Журнал").setOnClickListener(() => {
+			.setText(appLocale.walletHome.action_history).setOnClickListener(() => {
 				new HistoryScreen().start();
 			}));
 
@@ -88,8 +83,8 @@ class WalletHomeScreen extends Screen {
 		Updater.checkAppUpdate().then((r) => {
 			if(r !== false) {
 				this.updateBox.appendView(new RowView()
-					.setTitle("Доступна новая версия приложения")
-					.setSummary("Нажмите для обновления")
+					.setTitle(appLocale.walletHome.update_title)
+					.setSummary(appLocale.walletHome.update_message)
 					.setIcon("system_update_alt")
 					.setOnClickListener(() => {
 						new PlatformTools().openBrowser(r);
@@ -97,10 +92,10 @@ class WalletHomeScreen extends Screen {
 			}
 		})
 
-		right.appendView(new SubHeader("Недавние операции"));
+		right.appendView(new SubHeader(appLocale.walletHome.group_history));
 
 		this.historyBox = Utils.inflate({type: "div", class: "history"});
-		this.historyBox.appendView(new TextView("info", "Loading history..."));
+		this.historyBox.appendView(new TextView("info", appLocale.walletHome.history_loading));
 		right.appendView(this.historyBox);
 	}
 
@@ -125,14 +120,14 @@ class WalletHomeScreen extends Screen {
 	updateViews() {
 		if(this.walletData.isBalanceReady) {
 			this.mainBalanceView.setText(this.walletData.balance+" LTV");
-			this.unfonfirmedBalanceView.setText("Не подтверждено: "+
+			this.unfonfirmedBalanceView.setText(appLocale.walletHome.balance_unconfirmed+": "+
 				this.walletData.unconfirmed_balance+" LTV");
-			this.immatureBalanceView.setText("Дозревают: "+
+			this.immatureBalanceView.setText(appLocale.walletHome.balance_pending+": "+
 				this.walletData.immature_balance+" LTV");
 		}
 
 		this.setTitle("");
-		if(conState == 0) this.setTitle("Подключение...");
+		if(conState == 0) this.setTitle(appLocale.walletHome.title_connecting);
 	}
 
 	updateHistory() {
@@ -140,7 +135,7 @@ class WalletHomeScreen extends Screen {
 			var box = this.historyBox;
 			box.innerHTML = "";
 			if(this.walletData.history.length < 1) {
-				box.appendView(new TextView("info", "Ваши транзакции появятся тут :-)"));
+				box.appendView(new TextView("info", appLocale.walletHome.history_empty));
 			} else {
 				var history = this.walletData.history;
 				for(var a = history.length-1; a >=0; a--)
@@ -250,28 +245,28 @@ class TransactionViewScreen extends Screen {
 		this.addMod(new LeftSideScreenMod());
 
 		if(this.data.category == "send") this.appendView(new RowView()
-			.setTitle("Повторить")
+			.setTitle(appLocale.transactionView.action_repeat)
 			.setIcon("refresh")
 			.setOnClickListener(() => {
 				new SendScreen(this.data.address, this.data.amount, this.data.comment).start();
 			}));
 
-		this.appendView(new SubHeader("Сведения"));
+		this.appendView(new SubHeader(appLocale.transactionView.group_info));
 
 		this.appendView(new RowView()
-			.setTitle("Адрес")
+			.setTitle(appLocale.transactionView.prop_address)
 			.setSummary("<a style='word-break:break-all'>"+this.data.address+"</a>	"));
 		this.appendView(new RowView()
-			.setTitle("ID транзакции")
+			.setTitle(appLocale.transactionView.prop_id)
 			.setSummary("<a style='word-break:break-all'>"+this.data.txid+"</a>"));
 		this.appendView(new RowView()
-			.setTitle("Дата транзакции")
+			.setTitle(appLocale.transactionView.prop_date)
 			.setSummary(new Date(this.data.time).toString()));
 		this.appendView(new RowView()
-			.setTitle("Количество подтверждений")
+			.setTitle(appLocale.transactionView.prop_confirmations)
 			.setSummary(this.data.confirmations));
 		this.appendView(new RowView()
-			.setTitle("Коментарий")
+			.setTitle(appLocale.transactionView.prop_comment)
 			.setSummary(this.data.comment));
 	}
 }
@@ -300,7 +295,7 @@ class ReceiveScreen extends Screen {
 
 		var btn = new Button()
 			.setStyle(Button.STYLE_OUTLINE)
-			.setText("Скопировать")
+			.setText(appLocale.receiveScreen.action_copy)
 			.setOnClickListener(() => {
 				mWallet.copy(address);
 			});
@@ -334,22 +329,22 @@ class SendScreen extends Screen {
 		this.appendView(sumView);
 
 		var tiv = new TextInput()
-			.setTitle("Адрес получателя")
+			.setTitle(appLocale.receiveScreen.prop_address)
 			.fromString(this.address ? this.address : "")
 			.setHolder("Lxxxxx");
 
 		this.appendView(tiv);
 
 		var civ = new TextInput()
-			.setTitle("Коментарий для получателя")
+			.setTitle(appLocale.receiveScreen.prop_comment)
 			.fromString(this.comment ? this.comment : "")
-			.setHolder("Не обязательно");
+			.setHolder(appLocale.receiveScreen.prop_comment_holder);
 
 		this.appendView(civ);
 
 		var btn = new Button()
 			.setStyle(Button.STYLE_CONTAINED)
-			.setText("Отправить")
+			.setText(appLocale.receiveScreen.action_send)
 			.setOnClickListener(function() {
 				ctx.sum = sumView.sumInput.value;
 				ctx.address = tiv.toString();
@@ -377,17 +372,17 @@ class SendScreen extends Screen {
 			} else if(e.code == -3) {
 				// Invalid amount
 				var d = new Alert()
-					.setMessage("Введите сумму")
+					.setMessage(appLocale.receiveScreen.error_noSum)
 					.show();
 			} else if(e.code == -5) {
 				// Invalid account
 				var d = new Alert()
-					.setMessage("Указанный вами адрес, не существует")
+					.setMessage(appLocale.receiveScreen.error_invalidAddress)
 					.show();
 			} else if(e.code == -6) {
 				// Insufficient funds
 				var d = new Alert()
-					.setMessage("Не хватает средств для перевода")
+					.setMessage(appLocale.receiveScreen.error_noMoney)
 					.show();
 			} else {
 				// Unknown error
@@ -400,6 +395,7 @@ class SendScreen extends Screen {
 class ExplorerScreen extends Screen {
 	onCreate() {
 		this.setHomeAsUpAction();
+		// TODO: Re-write this!!!
 
 		this.appendView(new TextView("title", "Обзор"))
 		this.appendView(new RowView().setTitle("<b>Количество блоков: </b>"+globalWalletData.blockcount))
@@ -502,11 +498,11 @@ class HistoryScreen extends Screen {
 		this.offset = 0;
 		this.setHomeAsUpAction();
 		this.addMod(new LeftSideScreenMod());
-		this.setTitle("История операций")
+		this.setTitle(appLocale.historyScreen.title)
 		this.box = Utils.inflate({type: "div"});
 		this.appendView(this.box);
 		this.appendView(new RowView()
-			.setTitle("Показать ещё")
+			.setTitle(appLocale.historyScreen.action_more)
 			.setIcon("history")
 			.setOnClickListener(() => {ctx.loadNext()}));
 		this.loadNext();

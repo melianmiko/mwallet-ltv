@@ -1,10 +1,10 @@
-.fw-textview-style-balance-main {
+.fw-textview-style.balance-main {
 	margin: 0 16px;
 	margin-top: 16px;
 	font-size: 36px;
 }
 
-.fw-textview-style-balance-small {
+.fw-textview-style.balance-small {
 	margin: 8px 16px;
 	font-size: 12px;
 	color: #999;
@@ -30,8 +30,7 @@
 .console-log > .in {color: blue;}
 .console-log > .error {color: red;}
 
-.fw-textview-style-hashrate,
-.fw-textview-style-title3 {
+.fw-textview-style.title3 {
 	margin: 8px 16px;
 	font-size: 24px;
 }
@@ -51,13 +50,15 @@
 	flex: 1; width: 0;
 }
 
-.fw-textview-style-address {
+html.darktheme .sumEditor > input {color: #fff;}
+
+.fw-textview-style.address {
 	text-align: center;
 	font: monospace;
 	color: #f09;
 }
 
-.fw-textview-style-address-label {
+.fw-textview-style.address-label {
 	text-align: center;
 	color: #333;
 	font-weight: bold;
