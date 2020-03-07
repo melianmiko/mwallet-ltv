@@ -2,7 +2,6 @@ var version = "alpha1";
 
 // Global variables
 var globalWalletData = null;
-var conState = 0;
 
 // Config
 Config.mainColor = "#f09";
@@ -126,8 +125,18 @@ class WalletHomeScreen extends Screen {
 				this.walletData.immature_balance+" LTV");
 		}
 
-		this.setTitle("");
-		if(conState == 0) this.setTitle(appLocale.walletHome.title_connecting);
+		switch(mWallet.connState) {
+			case 2:
+				this.setTitle("");
+				return;
+			case 1:
+				this.setTitle(appLocale.walletHome.title_syncing);
+				return;
+			case 0:
+				this.setTitle(appLocale.walletHome.title_connecting);
+				return;
+		}
+
 	}
 
 	updateHistory() {
@@ -169,67 +178,6 @@ class WalletHomeScreen extends Screen {
 			row.setIcon("timer");
 
 		return row;
-	}
-}
-
-// ========================================================================================
-class WalletDataProvider {
-	constructor() {
-		this.setupDefaults();
-		this.setupTimers();
-
-		this.updateWalletInfo();
-	}
-
-	setupDefaults() {
-		this.isBalanceReady = false;
-		this.isHistoryReady = false;
-		this.isGenerate = false;
-		this.balance = 0;
-		this.unconfirmed_balance = 0;
-		this.immature_balance = 0;
-		this.blockcount = 0;
-		this.hashrate = 0;
-		this.addressReceive = '";'
-	}
-
-	setupTimers() {
-		var ctx = this;
-		setInterval(() => {
-			// Update balances
-			ctx.updateWalletInfo();
-		}, 7500);
-	}
-
-	updateWalletInfo() {
-		var ctx = this;
-		mWallet.sendCmd(["listtransactions"]).then(function(data) {
-			ctx.isHistoryReady = true;
-			ctx.history = data;
-		});
-		mWallet.sendCmd(["getwalletinfo"]).then(function(data) {
-			for(var a in data)
-				ctx[a] = data[a];
-			ctx.isBalanceReady = true;
-		});
-		mWallet.sendCmd(["getconnectioncount"]).then(function(data) {
-			if(data > 0)
-				conState = 1;
-			else
-				conState = 0;
-		});
-		mWallet.sendCmd(["getblockcount"]).then(function(count) {
-			ctx.blockcount = count;
-		});
-		mWallet.sendCmd(["getgenerate"]).then(function(isGenerate) {
-			ctx.isGenerate = isGenerate;
-		})
-		mWallet.sendCmd(["gethashespersec"]).then(function(hashrate) {
-			ctx.hashrate = hashrate;
-		})
-		mWallet.sendCmd(["getaccountaddress", ""]).then(function(address) {
-			ctx.addressReceive = address;
-		})
 	}
 }
 
@@ -394,51 +342,70 @@ class SendScreen extends Screen {
 
 class ExplorerScreen extends Screen {
 	onCreate() {
+		var ctx = this;
 		this.setHomeAsUpAction();
-		// TODO: Re-write this!!!
+		this.setTitle(appLocale.explorer.title);
 
-		this.appendView(new TextView("title", "Обзор"))
-		this.appendView(new RowView().setTitle("<b>Количество блоков: </b>"+globalWalletData.blockcount))
+		this.box_status = Utils.inflate({type: "div"});
+		this.box_prices = Utils.inflate({type: "div"});
 
-		this.statusBox = Utils.inflate({type: "div"});
-		this.appendView(this.statusBox);
-		this.updateStatusBox();
+		this.appendView(new SubHeader(appLocale.explorer.header_state));
+		this.appendView(this.box_status);
+		this.appendView(new RowView()
+			.setTitle(appLocale.explorer.action_clear_banned)
+			.setOnClickListener(() => {
+				mWallet.sendCmd(["clearbanned"]).then(() => {
+					new Alert().setMessage("Complete!").show();
+				});
+			}));
 
-		this.priceBox = Utils.inflate({type: "div"});
-		this.appendView(this.priceBox);
-		this.updatePriceBox();
+		this.appendView(new SubHeader(appLocale.explorer.header_price));
+		this.appendView(this.box_prices);
+
+		this.updateViews();
+
+		this.interval = function() {
+			ctx.updateViews();
+		};
+
+		setInterval(this.interval, 5000);
 	}
 
-	updateStatusBox() {
-		var ctx = this;
-		this.statusBox.innerHTML = "";
-		mWallet.sendCmd(["listmasternodes"]).then((d) => {
-			this.statusBox.appendView(new RowView()
-				.setTitle("<b>Количество мастернод: </b>"+d.length));
-			return mWallet.sendCmd(["getconnectioncount"]);
-		}).then((d) => {
-			this.statusBox.appendView(new RowView()
-				.setTitle("<b>Количество подключений: </b>"+d));
-			return mWallet.sendCmd(["listbanned"]);
-		}).then((d) => {
-			this.statusBox.appendView(new RowView()
-				.setOnClickListener(() => {
-					mWallet.sendCmd(["clearbanned"]).then(() => {
-						new Alert().setMessage("Список очищен").show();
-						ctx.updateStatusBox();
-					})
-				})
-				.setSummary("Нажмите для очистки")
-				.setTitle("<b>Количество забаненных: </b>"+d.length));
-			return mWallet.sendCmd(["getnetworkhashps"]);
-		}).then((d) => {
-			this.statusBox.appendView(new RowView()
-				.setTitle("<b>Скорость сети: </b>"+ctx.parseHashrate(d)));
-			return fetch("https://chainz.cryptoid.info/ltv/api.dws?q=getdifficulty");
-		}).then((r) => {return r.text()}).then((d) => {
-			this.statusBox.appendView(new RowView()
-				.setTitle("<b>Сложность: </b>"+(Math.round(d*100)/100)));
-		});
+	onFinish() {
+		clearInterval(this.interval);
+		return true;
+	}
+
+	updateViews() {
+		var lc = appLocale.explorer;
+		// Status box
+		this.box_status.innerHTML = "";
+		this.box_status.appendView(
+			this.mkInfo(lc.status_blocks, globalWalletData.blockcount+" / "+globalWalletData.globalBlockCount));
+		this.box_status.appendView(
+			this.mkInfo(lc.status_masternodes, globalWalletData.masternodes.total));
+		this.box_status.appendView(
+			this.mkInfo(lc.status_connections, globalWalletData.connections));
+		this.box_status.appendView(
+			this.mkInfo(lc.status_banned, globalWalletData.banned.length));
+		this.box_status.appendView(
+			this.mkInfo(lc.status_network_speed, this.parseHashrate(globalWalletData.networkHashrate)));
+		this.box_status.appendView(
+			this.mkInfo(lc.status_difficulty, Math.round(globalWalletData.difficulty*100)/100 ));
+		// Price box
+		this.box_prices.innerHTML = "";
+		this.box_prices.appendView(
+			this.mkInfo(lc.price_today, this.showBtc(globalWalletData.midPrice)));
+		this.box_prices.appendView(
+			this.mkInfo(lc.price_all, this.showBtc(globalWalletData.midPrice*globalWalletData.balance)));
+		this.box_prices.appendView(
+			this.mkInfo(lc.prices_24h, globalWalletData.lowest24h+"-"+globalWalletData.highest24h+" BTC"));
+		this.box_prices.appendView(
+			this.mkInfo(lc.prices, globalWalletData.highestBuy+" / "+globalWalletData.lowestSell+" BTC"))
+	}
+
+	mkInfo(title, info) {
+		return new TextView("explorer_row", "<b>"+title+": </b>"+info);
 	}
 
 	parseHashrate(hr) {
@@ -455,40 +422,9 @@ class ExplorerScreen extends Screen {
 		return hr+" "+prefix+"H/s";
 	}
 
-	updatePriceBox() {
-		var ctx = this;
-		fetch("https://blockchain.info/ticker").then((r) => {
-			return r.json();
-		}).then((d) => {
-			ctx.btcUsbPrice = d.USD.last;
-			return fetch("https://www.occe.io/api/v2/public/info/ltv_btc");
-		}).then((r) => {
-			return r.json();
-		}).then((d) => {
-			d = d.coinInfo[0];
-			console.log(d);
-			var midPrice = (d.lowest24h+d.highest24h)/2;
-			ctx.priceBox.appendView(new TextView("title3", "Цена монеты"));
-			ctx.priceBox.appendView(new RowView()
-				.setTitle("Средняя цена монеты (на сегодня)")
-				.setSummary(ctx.showBtc(midPrice)));
-			ctx.priceBox.appendView(new RowView()
-				.setTitle("Средняя цена всех ваших монет (примерная)")
-				.setSummary(ctx.showBtc(midPrice*globalWalletData.balance)));
-			ctx.priceBox.appendView(new RowView()
-				.setTitle("Цена за 24 часа (мин/макс)")
-				.setSummary(d.lowest24h+"/"+d.highest24h+" BTC"));
-			ctx.priceBox.appendView(new RowView()
-				.setTitle("Макс цена продажи / Мин цена покупки")
-				.setSummary(d.highestBuy+"/"+d.lowestSell+" BTC"));
-			ctx.priceBox.appendView(new TextView("info", 
-				"Информация с сайта OCCE.io, курс BTC к USD предоставлен blockchain.info."));
-		});
-	}
-
 	showBtc(btc) {
 		return btc+" BTC / "+
-			(Math.round(btc*this.btcUsbPrice*100)/100)+"$";
+			(Math.round(btc*globalWalletData.btcUsdPrice*100)/100)+"$";
 	}
 }
 

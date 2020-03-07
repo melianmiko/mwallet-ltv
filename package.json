@@ -7,7 +7,7 @@
   "main": "index.js",
   "scripts": {
     "start": "electron .",
-    "dist": "electron-builder",
+    "dist": "electron-builder -l",
     "apk": "cordova build android"
   },
   "author": "",
@@ -41,11 +41,11 @@
       "target": [
         {
           "target": "portable",
-          "arch": "x64"
+          "arch": "ia32"
         },
         {
           "target": "nsis",
-          "arch": "x64"
+          "arch": "ia32"
         }
       ]
     }

@@ -1,6 +1,7 @@
 window.mWallet = {
 	locales: ["ru"],
 	hasNative: false,
+	connState: 0,
 	server: {},
 	platform: {},
 	allowAccountSettings: true,

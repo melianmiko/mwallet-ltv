@@ -54,6 +54,7 @@ window.appLocale = {
 	},
 	walletHome: {
 		title_connecting: "Подключение...",
+		title_syncing: "Синхринизация...",
 		action_explore: "Обзор",
 		action_settings: "Параметры",
 		action_receive: "Получить",
@@ -74,6 +75,22 @@ window.appLocale = {
 					"Для полного закрытия приложения используйте пункт \"Выйти\" в настройках. "+
 					"Вы можете отключить фоновый режим в настройках приложения.<br/><br/>"+
 					"Это сообщение больше не появится."
+	},
+	explorer: {
+		title: "Обзор",
+		header_state: "Состояние",
+		header_price: "Цены",
+		action_clear_banned: "Очистить заблокированные",
+		status_blocks: "Блоки",
+		status_masternodes: "Мастернод",
+		status_connections: "Кол-во подключений",
+		status_banned: "Заблокировано",
+		status_network_speed: "Скорость",
+		status_difficulty: "Сложность",
+		price_today: "За 1 монету",
+		price_all: "За все ваши",
+		prices_24h: "Динамика за сутки",
+		prices: "Продажа / Покупка"
 	},
 	transactionView: {
 		action_repeat: "Повторить",
