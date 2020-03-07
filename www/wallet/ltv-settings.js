@@ -96,7 +96,12 @@ class DonateScreen extends Screen {
 		this.setHomeAsUpAction();
 		this.addMod(new RightSideScreenMod());
 
-		// TODO: Help with translation
+		this.appendView(new RowView()
+			.setTitle(appLocale.donateScreen.be_translator)
+			.setOnClickListener(() => {
+				// TODO: Help with translation
+				new Alert().setMessage("Увы, приложение пока не готово к принятию языков, отличных от русского. Эта функция будет доделана в скором времени.").show();
+			}));
 
 		this.appendView(new RowView()
 			.setTitle(appLocale.donateScreen.donate_ltv)

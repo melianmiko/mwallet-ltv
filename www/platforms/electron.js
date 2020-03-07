@@ -82,8 +82,91 @@ mWallet.platform.loadDaemonArgs = function() {return new Promise((resolve, rejec
 	mWallet.platform.getDataDir().then(() => {
 		DAEMON_ARGS +=  " -datadir="+elServerDatadir;
 		console.log(DAEMON_ARGS);
+		return mWallet.platform.createWallet();
+	}).then(() => {
 		resolve();
 	});
+})};
+
+mWallet.platform.createWallet = function(){return new Promise((resolve,reject) => {
+	if(fs.existsSync(elServerDatadir+"/wallet.dat")) {
+		console.log("wallet exists");
+		resolve();
+		return;
+	}
+
+	console.log("Show first setup dialog...");
+
+	var scr = new Screen();
+	scr.onCreate = function() {};
+	scr.appendView(new TextView("title", appLocale.electron.setup_title));
+	scr.appendView(new TextView("p", appLocale.electron.setup_info));
+
+	var loadPeersCheckbox = new Checkbox()
+		.setTitle(appLocale.electron.prop_load_peers)
+		.setChecked(true);
+
+	var loadPeers = function() {return new Promise((resolve, reject) => {
+		if(!loadPeersCheckbox.isChecked()) {
+			console.log("do not load peers");
+			resolve();
+		} else {
+			console.log("load peers...");
+			fetch("http://chainz.cryptoid.info/ltv/api.dws?q=nodes").then((r) => {
+				return r.json();
+			}).then((d) => {
+				var out = "";
+				for(var set in d)
+					for(var node in d[set].nodes)
+						out += "addnode="+d[set].nodes[node];
+
+				fs.writeFileSync(elServerDatadir+"/leadertvcoin.conf", out, "utf-8");
+				resolve();
+			}).catch((e) => {
+				console.error(e);
+			});
+		}
+	})};
+
+	scr.appendView(new RowView()
+		.setTitle(appLocale.electron.action_create)
+		.setOnClickListener(() => {
+			scr.finish();
+			loadPeers().then(() => {
+				resolve();
+			});
+		}));
+
+	scr.appendView(new RowView()
+		.setTitle(appLocale.electron.action_restore)
+		.setOnClickListener(() => {
+			mWallet.openDialog().then((p) => {
+				p = p[0];
+
+				const fs = require('fs-extra');
+				fs.copySync(p, elServerDatadir+"/wallet.dat");
+
+				scr.finish();
+				loadPeers().then(() => {
+					resolve();
+				})
+			})
+		}));
+	
+
+	scr.appendView(new SubHeader(appLocale.electron.group_cfg));
+	scr.appendView(loadPeersCheckbox);
+	scr.appendView(new TextView("info", appLocale.electron.prop_load_peers_info));
+
+	scr.appendView(new SubHeader(appLocale.electron.group_etc));
+	scr.appendView(new RowView()
+		.setTitle(appLocale.electron.action_back)
+		.setOnClickListener(() => {
+			localStorage.daemonDataDir = "";
+			location.reload();
+		}));
+
+	scr.start();
 })};
 
 mWallet.platform.getDataDir = function(){return new Promise((resolve, reject) => {
@@ -100,7 +183,7 @@ mWallet.platform.getDataDir = function(){return new Promise((resolve, reject) =>
 	scr.onCreate = function() {}; // Disable onCreate warning
 
 	scr.appendView(new TextView("title", appLocale.electron.dataSelect_title))
-	scr.appendView(new TextView("info", appLocale.electron.dataSelect_info));
+	scr.appendView(new TextView("p", appLocale.electron.dataSelect_info));
 
 	scr.appendView(new RowView()
 		.setTitle(appLocale.electron.recomentPath)
@@ -110,6 +193,22 @@ mWallet.platform.getDataDir = function(){return new Promise((resolve, reject) =>
 			elServerDatadir = localStorage.daemonDataDir;
 			scr.finish();
 			resolve();
+		}));
+
+	scr.appendView(new RowView()
+		.setTitle(appLocale.electron.selectPath)
+		.setOnClickListener(() => {
+			mWallet.openFolderDialog().then((path) => {
+				console.log(path);
+				if(/[а-яА-ЯЁё]/.test(path)) {
+					new Alert().setMessage(appLocale.electron.alert_nolatin_path).show();
+				} else {
+					localStorage.daemonDataDir = path;
+					elServerDatadir = localStorage.daemonDataDir;
+					scr.finish();
+					resolve();
+				}
+			})
 		}));
 
 	scr.start();
@@ -351,5 +450,12 @@ mWallet.saveDialog = function() {return new Promise((resolve, reject) => {
 mWallet.openDialog = function() {return new Promise((resolve, reject) => {
 	var path = electron.remote.dialog.showOpenDialogSync({});
 	resolve(path);
+})};
+
+mWallet.openFolderDialog = function() {return new Promise((resolve, reject) => {
+	var path = electron.remote.dialog.showOpenDialogSync({
+		properties: ['openDirectory']
+	});
+	resolve(path[0]);
 })};
 

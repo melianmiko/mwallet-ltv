@@ -844,6 +844,9 @@ html.darktheme .fw-toolbar a {
   height: 40px;
   font-family: "Roboto", Arial, sans;
 }
+.fw-textinput .input[type=color] {
+  min-height: 2.5rem;
+}
 
 html.darktheme .fw-textinput {
   border-color: #222;

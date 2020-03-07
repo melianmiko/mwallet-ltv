@@ -1,4 +1,4 @@
-var version = "alpha1";
+var version = "alpha2";
 
 // Global variables
 var globalWalletData = null;

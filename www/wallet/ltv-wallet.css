@@ -4,7 +4,8 @@
 	font-size: 36px;
 }
 
-.fw-textview-style.explorer_row {
+.fw-textview-style.explorer_row,
+.fw-textview-style.p {
 	margin: 16px;
 	user-select: none;
 }
