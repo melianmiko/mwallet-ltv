@@ -77,7 +77,7 @@ mWallet.launcherTools.launchPlatform = function() {return new Promise((resolve,r
 	if(navigator.userAgent.indexOf("Electron") > 0) {
 		// ELetron mode
 		mWallet.platform.name = "electron";
-	} else if(typeof(cordova) == "object") {
+	} else if(!!window.cordova) {
 		// Cordova (non-native)
 		mWallet.platform.name = "cordova";
 	} else {
