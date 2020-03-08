@@ -13,6 +13,19 @@ mWallet.server.launch = function() {return new Promise((resolve, reject) => {
 	resolve(true);
 })};
 
+mWallet.server.settings = function() {
+	var scr = new Screen();
+	scr.onCreate = function() {
+		this.setHomeAsUpAction();
+		this.appendView(new RowView()
+			.setTitle("Give me a money!")
+			.setOnClickListener(() => {
+				mWallet.server.doTransaction("receive", 150);
+			}));
+	};
+	scr.start();
+}
+
 mWallet.server.doTransaction = function(category, amount) {
 	if(category == "send") 
 		localStorage.debugBalance = parseFloat(localStorage.debugBalance)-amount;
@@ -24,7 +37,7 @@ mWallet.server.doTransaction = function(category, amount) {
 		address: "LvXXXXXXXXXXXXXXXXXXXXXXX",
 		amount: amount,
 		category: category,
-		comment: (amount > 100 ? "Oh yeah!" : ""),
+		comment: (amount > 250 ? "Oh yeah!" : ""),
 		time: Date.now()
 	}
 	localStorage.debugHistory = JSON.stringify(h);
@@ -53,6 +66,19 @@ mWallet.sendCmd = function(cmd) {return new Promise(function(resolve,reject) {
 	} else if(cmd[0] == "setgenerate") {
 		mWallet.server.isGenerate = cmd[1];
 		resolve(true);
+	} else if(cmd[0] == "listbanned") {
+		resolve([
+			"1.2.3.4",
+			"5.8.2.228",
+			"192.168.43.1",
+			"8.8.8.8"
+		]);
+	} else if(cmd[0] == "getmasternodecount") {
+		resolve({
+			total: 228
+		});
+	} else if(cmd[0] == "getnetworkhashps") {
+		resolve(1289876758);
 	} else if(cmd[0] == "getaccountaddress")
 		resolve("LvXXXXXXXXXXXXXXXXXXXXXXX");
 	else {
