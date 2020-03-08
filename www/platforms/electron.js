@@ -280,8 +280,11 @@ mWallet.restoreBackup = function() {
 	}).then((r) => {
 		console.log(destFile, bkpFile);
 		const fs = require('fs-extra');
+
+		fs.removeSync(destFile+".bak");
 		fs.moveSync(destFile, destFile+".bak");
 		fs.copySync(bkpFile, destFile);
+
 		location.reload();
 	});
 };
