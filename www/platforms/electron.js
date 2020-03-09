@@ -38,6 +38,7 @@ mWallet.platform.launchNative = function() {return new Promise((resolve,reject) 
 		mWallet.launcherTools.updateState("Создание подключения...");
 		mWallet.server.isLocal = true;
 		mWallet.allowBackup = true;
+		mWallet.allowMining = true;
 		mWallet.allowRecovery = false;
 		mWallet.server.url = "127.0.0.1";
 		mWallet.server.port = elServerPort;

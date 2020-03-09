@@ -56,7 +56,7 @@ class ToolsScreen extends Screen {
 				new FWSettingsScreen(appLocale.fwSettings).start();
 			}));
 
-		this.appendView(new RowView()
+		if(mWallet.allowMining) this.appendView(new RowView()
 			.setIcon("arrow_downward")
 			.setTitle(appLocale.toolsScreen.mining)
 			.setSummary(appLocale.toolsScreen.mining_info)

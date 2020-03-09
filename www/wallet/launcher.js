@@ -7,6 +7,7 @@ window.mWallet = {
 	allowAccountSettings: true,
 	allowBackup: false,
 	allowRecovery: false,
+	allowMining: false,
 	showDonate: true,
 	launcherTools: {}
 };
