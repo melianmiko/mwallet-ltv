@@ -118,7 +118,7 @@ mWallet.platform.createWallet = function(){return new Promise((resolve,reject) =
 				var out = "";
 				for(var set in d)
 					for(var node in d[set].nodes)
-						out += "addnode="+d[set].nodes[node];
+						out += "addnode="+d[set].nodes[node]+"\n";
 
 				fs.writeFileSync(elServerDatadir+"/leadertvcoin.conf", out, "utf-8");
 				resolve();
@@ -364,13 +364,14 @@ mWallet.platform.downloadDaemon = function(){return new Promise((resolve, reject
 			})
 	} else if(process.platform === "linux") {
 		console.log("download md5...");
-		ctx.download(LINUX_PREBUILD_MD5_URL, mWallet.platform.getDaemonMd5Filename())
+		mWallet.platform.download(LINUX_PREBUILD_MD5_URL, mWallet.platform.getDaemonMd5Filename())
 			.then(() => {
 				console.log("download daemon...");
-				return ctx.download(LINUX_PREBUILD_URL, mWallet.platform.getDaemonFilename())
+				return mWallet.platform.download(LINUX_PREBUILD_URL, mWallet.platform.getDaemonFilename())
 			}).then(() => {
 				console.log("downloaded, recheck...");
-				return ctx.checkFiles();
+				fs.chmodSync(mWallet.platform.getDaemonFilename(), '755');
+				return mWallet.platform.checkFiles();
 			}).then(() => {
 				resolve();
 			}).catch((error) => {
