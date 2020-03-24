@@ -1,4 +1,4 @@
-window.appLocale = {
+class Russian {getLang() {return  {
 	localeInfo: {
 		// Put translators credits here
 		author: "Michael B",
@@ -177,4 +177,4 @@ window.appLocale = {
 		be_translator: "Стать переводчиком",
 		donate_translator: "Поддержать автора русского перевода"
 	}
-};
+}}}

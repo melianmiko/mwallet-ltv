@@ -30,9 +30,9 @@ class WalletDataProvider {
 		var ctx = this;
 
 		// Get connection status
-		mWallet.sendCmd(["getconnectioncount"]).then(function(data) {
+		mWallet.server.getConnections().then(function(data) {
 			ctx.connections = data;
-			return mWallet.sendCmd(["getblockcount"]);
+			return mWallet.server.getBlockCount();
 		}).then((bc) => {
 			ctx.blockcount = bc;
 			return fetch(coinConfig.globalBlockCount);
@@ -78,38 +78,35 @@ class WalletDataProvider {
 		})
 
 		// Get other data
-		mWallet.sendCmd(["listtransactions"]).then(function(data) {
+		mWallet.server.getTransactionsLog(10, 0).then(function(data) {
 			ctx.isHistoryReady = true;
 			ctx.history = data;
 		});
 
-		mWallet.sendCmd(["listbanned"]).then(function(data) {
-			ctx.banned = data;
-		});
-
-		mWallet.sendCmd(["getmasternodecount"]).then(function(data) {
+		mWallet.server.getMasternodesCount().then(function(data) {
 			ctx.masternodes = data;
 		});
 
-		mWallet.sendCmd(["getwalletinfo"]).then(function(data) {
-			for(var a in data)
-				ctx[a] = data[a];
+		mWallet.server.getBalances().then(function(balances) {
 			ctx.isBalanceReady = true;
+			ctx.balance = balances[0];
+			ctx.unconfirmed_balance = balances[1];
+			ctx.immature_balance = balances[2];
 		});
 
-		mWallet.sendCmd(["getgenerate"]).then(function(isGenerate) {
+		mWallet.server.isGenerate().then(function(isGenerate) {
 			ctx.isGenerate = isGenerate;
 		})
 
-		mWallet.sendCmd(["gethashespersec"]).then(function(hashrate) {
+		mWallet.server.getMiningHashrate().then(function(hashrate) {
 			ctx.hashrate = hashrate;
 		});
 
-		mWallet.sendCmd(["getnetworkhashps"]).then(function(hr) {
+		mWallet.server.getNetworkHashrate().then(function(hr) {
 			ctx.networkHashrate = hr;
 		})
 
-		mWallet.sendCmd(["getaccountaddress", ""]).then(function(address) {
+		mWallet.server.getReceiveAddress().then(function(address) {
 			ctx.addressReceive = address;
 		})
 	}
