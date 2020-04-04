@@ -8,8 +8,9 @@
     "start": "electron .",
     "build": "babel src --out-file www/mWallet.js",
     "dist": "npm run build && electron-builder",
-    "dist-all": "npm run build && electron-builder -wl && cordova build android",
-    "apk": "npm run build && cordova build android"
+    "dist-wl": "npm run build && electron-builder -wl",
+    "dist-apk": "npm run build && cordova build android",
+    "dist-all": "npm run dist-wl && cordova build android"
   },
   "author": "mhbrgn <mhbrgn@gmail.com>",
   "license": "MIT",

@@ -12,28 +12,20 @@ mWallet-LTV
 
 Сборка из исходников
 -------------------
-1. Устаноавливаем зависимости. В первую очередь, ставим nodejs и npm.
-2. Клонируем репозиторий и ставим npm-зависимости
-```
-git clone https://github.com/mhbrgn/mWallet-LTV.git
-cd mWallet-LTV
-npm install
+Для сборки нужны `nodejs` и `npm`.
+```bash
+npm install       # Установить зависимости (выполняем в первую очередь)
 ```
 
-3. Сборка или запуск безм неё
+Список вариантов сборки/запуска:
+```bash
+npm run start	  # Запустить без сборки
+npm run dist	  # Собрать для текущей платформы
+npm run dist-wl   # Собрать для Windows и Linux
+npm run dist-apk  # Собрать для Android (нужен Android SDK)
+npm run dist-all  # Собрать для Windows, Linux и Android
 ```
-# Собрать установщик (Electron)
-npm run dist
 
-# ...или просто запустить
-npm start
-```
-
-4. Сборка для Android
-```
-npm install -g cordova # если не установлено
-cordova build android
-```
 Отладка
 --------
 Для доступа к инструментам разработчика, нажмите Ctrl-D в окне программы.

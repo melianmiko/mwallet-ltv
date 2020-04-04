@@ -176,13 +176,13 @@ class RemoteDaemonCfgScreen extends Screen {
 		var ctx = this;
 
 		this.setTitle("Настроить подключение");
-		this.formUrl = new TextInputView()
+		this.formUrl = new TextInput()
 			.setTitle("URL");
-		this.formPort = new TextInputView()
+		this.formPort = new TextInput()
 			.setTitle("Port");
-		this.formLogin = new TextInputView()
+		this.formLogin = new TextInput()
 			.setTitle("Login");
-		this.formPasswd = new TextInputView()
+		this.formPasswd = new TextInput()
 			.setTitle("Password");
 		this.appendView(this.formUrl);
 		this.appendView(this.formPort);

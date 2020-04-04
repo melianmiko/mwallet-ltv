@@ -1,8 +1,6 @@
 window.mWallet = {
 	version: "alpha3",
-	lang: {
-		ru: new Russian().getLang()
-	},
+	lang: {},
 	defaultLang: "ru",
 	connState: 0,
 	allowAccountSettings: true,
@@ -25,6 +23,9 @@ function getServer(srv) {
 
 mWallet.launch = function() {
 	Config.mainColor = "#f09";
+
+	// Build languages
+	mWallet.lang.ru = new Russian().getLang();
 
 	if(!mWallet.launcherTools._stateView) {
 		// Create state view screen
