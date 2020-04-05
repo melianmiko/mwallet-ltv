@@ -1,7 +1,7 @@
-const WIN32_PREBUILD_URL = "https://raw.githubusercontent.com/mhbrgn/mWallet-LTV-prebuild/master/leadertvcoind.exe";
-const WIN32_PREBUILD_MD5_URL = "https://raw.githubusercontent.com/mhbrgn/mWallet-LTV-prebuild/master/leadertvcoind.exe.md5";
-const LINUX_PREBUILD_URL = "https://raw.githubusercontent.com/mhbrgn/mWallet-LTV-prebuild/master/leadertvcoind-linux";
-const LINUX_PREBUILD_MD5_URL = "https://raw.githubusercontent.com/mhbrgn/mWallet-LTV-prebuild/master/leadertvcoind-linux.md5";
+const WIN32_PREBUILD_URL = "https://gitlab.com/mhbrgn/mWallet-LTV-prebuild/-/raw/master/leadertvcoind.exe";
+const WIN32_PREBUILD_MD5_URL = "https://gitlab.com/mhbrgn/mWallet-LTV-prebuild/-/raw/master/leadertvcoind.exe.md5";
+const LINUX_PREBUILD_URL = "https://gitlab.com/mhbrgn/mWallet-LTV-prebuild/-/raw/master/leadertvcoind-linux";
+const LINUX_PREBUILD_MD5_URL = "https://gitlab.com/mhbrgn/mWallet-LTV-prebuild/-/raw/master/leadertvcoind-linux.md5";
 
 class ElectronPlatform {
 	constructor() {
