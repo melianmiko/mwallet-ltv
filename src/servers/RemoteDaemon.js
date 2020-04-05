@@ -5,12 +5,12 @@
 
 class RemoteDaemon {
 	launch() {return new Promise((resolve, reject) => {
+		if(!mWallet.remote) mWallet.remote = {};
 		if(mWallet.remote.isLocal) {
 			// Forcely use saved settings
 			resolve(true);
 		} else {
 			// Recover saved settings and use then
-			if(!mWallet.remote) mWallet.remote = {};
 			mWallet.server.loadSaved();
 			mWallet.server.testConnection().then((d) => {
 				resolve(true);
@@ -198,7 +198,7 @@ class RemoteDaemonCfgScreen extends Screen {
 			.setText("Connect")
 			.setOnClickListener(() => {
 				ctx.save();
-				mWallet.server.try().then(() => {
+				mWallet.server.testConnection().then(() => {
 					ctx.resolve();
 					ctx.finish();
 				}).catch(() => {

@@ -2,9 +2,7 @@
 
 window.mWallet = {
   version: "alpha3",
-  lang: {
-    ru: new Russian().getLang()
-  },
+  lang: {},
   defaultLang: "ru",
   connState: 0,
   allowAccountSettings: true,
@@ -26,7 +24,9 @@ function getServer(srv) {
 }
 
 mWallet.launch = function () {
-  Config.mainColor = "#f09";
+  Config.mainColor = "#f09"; // Build languages
+
+  mWallet.lang.ru = new Russian().getLang();
 
   if (!mWallet.launcherTools._stateView) {
     // Create state view screen
@@ -1527,12 +1527,13 @@ class Debug {
 class RemoteDaemon {
   launch() {
     return new Promise((resolve, reject) => {
+      if (!mWallet.remote) mWallet.remote = {};
+
       if (mWallet.remote.isLocal) {
         // Forcely use saved settings
         resolve(true);
       } else {
         // Recover saved settings and use then
-        if (!mWallet.remote) mWallet.remote = {};
         mWallet.server.loadSaved();
         mWallet.server.testConnection().then(d => {
           resolve(true);
@@ -1718,10 +1719,10 @@ class RemoteDaemonCfgScreen extends Screen {
     if (this.openedFromSettings) this.setHomeAsUpAction();
     var ctx = this;
     this.setTitle("Настроить подключение");
-    this.formUrl = new TextInputView().setTitle("URL");
-    this.formPort = new TextInputView().setTitle("Port");
-    this.formLogin = new TextInputView().setTitle("Login");
-    this.formPasswd = new TextInputView().setTitle("Password");
+    this.formUrl = new TextInput().setTitle("URL");
+    this.formPort = new TextInput().setTitle("Port");
+    this.formLogin = new TextInput().setTitle("Login");
+    this.formPasswd = new TextInput().setTitle("Password");
     this.appendView(this.formUrl);
     this.appendView(this.formPort);
     this.appendView(this.formLogin);
@@ -1730,7 +1731,7 @@ class RemoteDaemonCfgScreen extends Screen {
       ctx.save();
     }));else this.appendView(new Button().setStyle(Button.STYLE_OUTLINE).setText("Connect").setOnClickListener(() => {
       ctx.save();
-      mWallet.server.try().then(() => {
+      mWallet.server.testConnection().then(() => {
         ctx.resolve();
         ctx.finish();
       }).catch(() => {

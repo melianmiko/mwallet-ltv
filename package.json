@@ -1,6 +1,7 @@
 {
   "name": "mwallet-ltv",
   "displayName": "mWallet LTV",
+  "homepage": "https://gitlab.com/mhbrgn/mwallet-ltv",
   "version": "1.0.0",
   "description": "Pretty GUI for LeaderTVCoin bloackchain network",
   "main": "index.js",
