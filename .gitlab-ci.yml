@@ -16,7 +16,7 @@ before_script:
   - apt-key add winehq.key
   - apt-add-repository https://dl.winehq.org/wine-builds/debian/
   - apt-get -y update
-  - apt-get -yq install --install-recommends winehq-stable
+  - apt-get -yq install wine-stable
   
 build:
   script:
