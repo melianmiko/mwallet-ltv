@@ -9,9 +9,17 @@ cache:
   paths:
     - node_modules/
 
+before_script:
+  - apt-get -y update
+  - apt-get -y install software-properties-common apt-transport-https zip unzip
+  - wget -nc https://dl.winehq.org/wine-builds/winehq.key
+  - apt-key add winehq.key
+  - apt-add-repository https://dl.winehq.org/wine-builds/debian/
+  - apt-get -y update
+  - apt-get -yq install --install-recommends winehq-stable
+  
 build:
   script:
-    - apt install wine -y
     - npm install
     - npm run dist
     
