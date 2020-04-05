@@ -22,7 +22,7 @@ before_script:
 build:
   script:
     - npm install
-    - npm run dist
+    - npm run dist-wl
     
   only:
     - master
