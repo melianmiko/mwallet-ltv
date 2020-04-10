@@ -60,7 +60,7 @@ class ElectronPlatform {
 			mWallet.launcherTools.updateState("Готов к запуску...")
 
 			mWallet.exit = function() {mWallet.sendCmd(["stop"]).then(function() {
-				electron.remote.getCurrentWindow().close();
+				mWallet.platform.electron.remote.getCurrentWindow().close();
 			})}
 
 			resolve(true)
@@ -395,9 +395,13 @@ class ElectronPlatform {
 		}, 1500);
 	})}
 
-	tryDaemonConnection() {
-		return mWallet.server.testConnection();
-	}
+	tryDaemonConnection() {return new Promise(function(resolve, reject) {
+		mWallet.server.testConnection().then(function() {
+			resolve(true);
+		}).catch(function() {
+			resolve(false);
+		});
+	})}
 
 	runShellCommand(cmd) {return new Promise(function(resolve,reject) {
 		mWallet.platform.exec(cmd, (error, stdout, stderr) => {

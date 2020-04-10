@@ -1,7 +1,7 @@
 "use strict";
 
 window.mWallet = {
-  version: "alpha3",
+  version: "v0.1.4",
   lang: {},
   defaultLang: "ru",
   connState: 0,
@@ -696,7 +696,7 @@ class WalletHomeScreen extends Screen {
     Updater.checkAppUpdate().then(r => {
       if (r !== false) {
         this.updateBox.appendView(new RowView().setTitle(appLocale.walletHome.update_title).setSummary(appLocale.walletHome.update_message).setIcon("system_update_alt").setOnClickListener(() => {
-          new PlatformTools().openBrowser(r);
+          mWallet.platform.openBrowser(r);
         }));
       }
     });
@@ -973,14 +973,14 @@ class Russian {
 class Updater {
   static checkAppUpdate() {
     return new Promise((resolve, reject) => {
-      fetch("https://api.github.com/repos/mhbrgn/mWallet-LTV/releases").then(r => {
+      fetch("https://gitlab.com/api/v4/projects/mhbrgn%2Fmwallet-ltv/repository/tags").then(r => {
         return r.json();
       }).then(d => {
-        var lastTag = d[0].tag_name,
+        var lastTag = d[0].name,
             version = mWallet.version;
 
         if (lastTag != version) {
-          resolve(d[0].html_url);
+          resolve("https://gitlab.com/mhbrgn/mwallet-ltv/-/tags/" + lastTag);
         } else resolve(false);
       }).catch(e => {
         reject(e);
@@ -993,10 +993,10 @@ class Updater {
 "use strict";
 "use strict";
 
-const WIN32_PREBUILD_URL = "https://raw.githubusercontent.com/mhbrgn/mWallet-LTV-prebuild/master/leadertvcoind.exe";
-const WIN32_PREBUILD_MD5_URL = "https://raw.githubusercontent.com/mhbrgn/mWallet-LTV-prebuild/master/leadertvcoind.exe.md5";
-const LINUX_PREBUILD_URL = "https://raw.githubusercontent.com/mhbrgn/mWallet-LTV-prebuild/master/leadertvcoind-linux";
-const LINUX_PREBUILD_MD5_URL = "https://raw.githubusercontent.com/mhbrgn/mWallet-LTV-prebuild/master/leadertvcoind-linux.md5";
+const WIN32_PREBUILD_URL = "https://gitlab.com/mhbrgn/mWallet-LTV-prebuild/-/raw/master/leadertvcoind.exe";
+const WIN32_PREBUILD_MD5_URL = "https://gitlab.com/mhbrgn/mWallet-LTV-prebuild/-/raw/master/leadertvcoind.exe.md5";
+const LINUX_PREBUILD_URL = "https://gitlab.com/mhbrgn/mWallet-LTV-prebuild/-/raw/master/leadertvcoind-linux";
+const LINUX_PREBUILD_MD5_URL = "https://gitlab.com/mhbrgn/mWallet-LTV-prebuild/-/raw/master/leadertvcoind-linux.md5";
 
 class ElectronPlatform {
   constructor() {
@@ -1055,7 +1055,7 @@ class ElectronPlatform {
 
         mWallet.exit = function () {
           mWallet.sendCmd(["stop"]).then(function () {
-            electron.remote.getCurrentWindow().close();
+            mWallet.platform.electron.remote.getCurrentWindow().close();
           });
         };
 
@@ -1369,7 +1369,13 @@ class ElectronPlatform {
   }
 
   tryDaemonConnection() {
-    return mWallet.server.testConnection();
+    return new Promise(function (resolve, reject) {
+      mWallet.server.testConnection().then(function () {
+        resolve(true);
+      }).catch(function () {
+        resolve(false);
+      });
+    });
   }
 
   runShellCommand(cmd) {
@@ -2107,6 +2113,7 @@ class SettingsScreen extends Screen {
     this.appendView(new RowView().setIcon("settings").setTitle(appLocale.toolsScreen.advanced).setSummary(appLocale.toolsScreen.advanced_info).setOnClickListener(() => {
       new AdvancedSettingsScreen().start();
     }));
+    this.appendView(new TextView("info", "Версия - " + mWallet.version + " | " + "<a href=''https://gitlab.com/mhbrgn/mwallet-ltv'>Исходники</a>"));
   }
 
 }

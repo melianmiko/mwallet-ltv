@@ -4,13 +4,13 @@
  */
 class Updater {
 	static checkAppUpdate() {return new Promise((resolve, reject) => {
-		fetch("https://api.github.com/repos/mhbrgn/mWallet-LTV/releases").then((r) => {
+		fetch("https://gitlab.com/api/v4/projects/mhbrgn%2Fmwallet-ltv/repository/tags").then((r) => {
 			return r.json();
 		}).then((d) => {
-			var lastTag = d[0].tag_name,
+			var lastTag = d[0].name,
 				version = mWallet.version;
 			if(lastTag != version) {
-				resolve(d[0].html_url);
+				resolve("https://gitlab.com/mhbrgn/mwallet-ltv/-/tags/"+lastTag);
 			} else resolve(false);
 		}).catch((e) => {
 			reject(e);

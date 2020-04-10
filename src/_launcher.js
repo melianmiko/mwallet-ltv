@@ -1,5 +1,5 @@
 window.mWallet = {
-	version: "alpha3",
+	version: "v0.1.4",
 	lang: {},
 	defaultLang: "ru",
 	connState: 0,

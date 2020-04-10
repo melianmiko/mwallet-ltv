@@ -78,7 +78,7 @@ class WalletHomeScreen extends Screen {
 					.setSummary(appLocale.walletHome.update_message)
 					.setIcon("system_update_alt")
 					.setOnClickListener(() => {
-						new PlatformTools().openBrowser(r);
+						mWallet.platform.openBrowser(r);
 					}));
 			}
 		})

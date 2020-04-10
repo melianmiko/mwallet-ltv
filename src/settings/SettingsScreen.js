@@ -72,5 +72,8 @@ class SettingsScreen extends Screen {
 			.setOnClickListener(() => {
 				new AdvancedSettingsScreen().start();
 			}));
+
+		this.appendView(new TextView("info", "Версия - "+mWallet.version+" | "+
+			"<a href=''https://gitlab.com/mhbrgn/mwallet-ltv'>Исходники</a>"));
 	}
 }
