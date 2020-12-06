@@ -1,14 +1,11 @@
-mWallet-LTV
+mWallet-LTV (ПРОЕКТ ЗАКРЫТ)
 ==============
 Красивый кошелёк для монет LeaderTV.
 
 Установка
 --------
-### Windows
-[https://github.com/mhbrgn/mWallet-LTV/releases](Тут) скачиваем установщик. И устанавливаем.
-
-### Linux
-В процессе...
+Скачайте пакет для вашей системы:
+https://gitlab.com/melianmiko/mwallet-ltv/-/releases/v0.1.4
 
 Сборка из исходников
 -------------------
