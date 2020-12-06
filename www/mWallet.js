@@ -973,7 +973,7 @@ class Russian {
 class Updater {
   static checkAppUpdate() {
     return new Promise((resolve, reject) => {
-      fetch("https://gitlab.com/api/v4/projects/mhbrgn%2Fmwallet-ltv/repository/tags").then(r => {
+      fetch("https://gitlab.com/api/v4/projects/melianmiko%2Fmwallet-ltv/repository/tags").then(r => {
         return r.json();
       }).then(d => {
         var lastTag = d[0].name,
@@ -993,10 +993,10 @@ class Updater {
 "use strict";
 "use strict";
 
-const WIN32_PREBUILD_URL = "https://gitlab.com/mhbrgn/mWallet-LTV-prebuild/-/raw/master/leadertvcoind.exe";
-const WIN32_PREBUILD_MD5_URL = "https://gitlab.com/mhbrgn/mWallet-LTV-prebuild/-/raw/master/leadertvcoind.exe.md5";
-const LINUX_PREBUILD_URL = "https://gitlab.com/mhbrgn/mWallet-LTV-prebuild/-/raw/master/leadertvcoind-linux";
-const LINUX_PREBUILD_MD5_URL = "https://gitlab.com/mhbrgn/mWallet-LTV-prebuild/-/raw/master/leadertvcoind-linux.md5";
+const WIN32_PREBUILD_URL = "https://gitlab.com/melianmiko/mWallet-LTV-prebuild/-/raw/master/leadertvcoind.exe";
+const WIN32_PREBUILD_MD5_URL = "https://gitlab.com/melianmiko/mWallet-LTV-prebuild/-/raw/master/leadertvcoind.exe.md5";
+const LINUX_PREBUILD_URL = "https://gitlab.com/melianmiko/mWallet-LTV-prebuild/-/raw/master/leadertvcoind-linux";
+const LINUX_PREBUILD_MD5_URL = "https://gitlab.com/melianmiko/mWallet-LTV-prebuild/-/raw/master/leadertvcoind-linux.md5";
 
 class ElectronPlatform {
   constructor() {
@@ -1394,7 +1394,7 @@ class ElectronPlatform {
     return mWallet.platform.getDaemonFilename() + ".md5";
   }
 
-  download() {
+  download(url, dest) {
     return new Promise((resolve, reject) => {
       const http = require('https');
 
@@ -1455,9 +1455,9 @@ class Debug {
     return new Promise((resolve, reject) => {
       if (!localStorage.debugBalance) localStorage.debugBalance = 50;
       if (!localStorage.debugHistory) localStorage.debugHistory = "[]";
-      mWallet.server.isGenerate = false;
+      mWallet.server._isGenerate = false;
       setInterval(() => {
-        if (!mWallet.server.isGenerate) return;
+        if (!mWallet.server._isGenerate) return;
         mWallet.server.doTransaction("generate", 100);
       }, 20000);
       resolve(true);
@@ -1500,11 +1500,11 @@ class Debug {
         balance: parseFloat(localStorage.debugBalance),
         unconfirmed_balance: 2.11,
         immature_balance: 10
-      });else if (cmd[0] == "listtransactions") resolve(JSON.parse(localStorage.debugHistory));else if (cmd[0] == "getconnectioncount") resolve(21);else if (cmd[0] == "getblockcount") resolve(1234);else if (cmd[0] == "getgenerate") resolve(mWallet.server.isGenerate);else if (cmd[0] == "gethashespersec") resolve(mWallet.server.isGenerate ? 3512987 : 0);else if (cmd[0] == "sendtoaddress") {
+      });else if (cmd[0] == "listtransactions") resolve(JSON.parse(localStorage.debugHistory));else if (cmd[0] == "getconnectioncount") resolve(21);else if (cmd[0] == "getblockcount") resolve(1234);else if (cmd[0] == "getgenerate") resolve(mWallet.server._isGenerate);else if (cmd[0] == "gethashespersec") resolve(mWallet.server._isGenerate ? 3512987 : 0);else if (cmd[0] == "sendtoaddress") {
         mWallet.server.doTransaction("send", cmd[2]);
         resolve(true);
       } else if (cmd[0] == "setgenerate") {
-        mWallet.server.isGenerate = cmd[1];
+        mWallet.server._isGenerate = cmd[1];
         resolve(true);
       } else if (cmd[0] == "listbanned") {
         resolve(["1.2.3.4", "5.8.2.228", "192.168.43.1", "8.8.8.8"]);
@@ -1520,6 +1520,109 @@ class Debug {
         });
         console.warn("Undefined command", cmd);
       }
+    });
+  }
+
+  getBalances() {
+    return new Promise(function (resolve, reject) {
+      mWallet.server.sendCmd(["getwalletinfo"]).then(function (d) {
+        resolve([d.balance, d.unconfirmed_balance, d.immature_balance]);
+      }).catch(function (e) {
+        reject(e);
+      });
+    });
+  }
+
+  sendToAddress(a, s, c) {
+    return new Promise(function (resolve, reject) {
+      mWallet.server.sendCmd(["sendtoaddress", a, s, c]).then(function (d) {
+        resolve(d);
+      }).catch(function (e) {
+        reject(e);
+      });
+    });
+  }
+
+  getReceiveAddress() {
+    return new Promise(function (resolve, reject) {
+      mWallet.server.sendCmd(["getaccountaddress", ""]).then(function (d) {
+        resolve(d);
+      }).catch(function (e) {
+        reject(e);
+      });
+    });
+  }
+
+  getTransactionsLog(count, offset) {
+    return new Promise(function (resolve, reject) {
+      mWallet.server.sendCmd(["listtransactions", "", count, offset]).then(function (d) {
+        resolve(d);
+      }).catch(function (e) {
+        reject(e);
+      });
+    });
+  }
+
+  getMasternodesCount() {
+    return new Promise(function (resolve, reject) {
+      mWallet.server.sendCmd(["listmasternodes"]).then(function (d) {
+        resolve(d.length);
+      }).catch(function (e) {
+        reject(e);
+      });
+    });
+  }
+
+  getBlockCount() {
+    return new Promise(function (resolve, reject) {
+      mWallet.server.sendCmd(["getblockcount"]).then(function (d) {
+        resolve(d);
+      }).catch(function (e) {
+        reject(e);
+      });
+    });
+  }
+
+  getNetworkHashrate() {
+    return new Promise(function (resolve, reject) {
+      mWallet.server.sendCmd(["getnetworkhashps"]).then(function (d) {
+        resolve(d);
+      }).catch(function (e) {
+        reject(e);
+      });
+    });
+  } // #nonative
+
+
+  getConnections() {
+    return new Promise(function (resolve, reject) {
+      mWallet.server.sendCmd(["getconnectioncount"]).then(function (d) {
+        resolve(d);
+      }).catch(function (e) {
+        reject(e);
+      });
+    });
+  } // #nonative
+
+
+  isGenerate() {
+    return new Promise(function (resolve, reject) {
+      mWallet.server.sendCmd(["getgenerate"]).then(function (d) {
+        resolve(d);
+      }).catch(function (e) {
+        reject(e);
+      });
+    });
+  } // #nonative
+
+
+  getMiningHashrate() {
+    return new Promise(function (resolve, reject) {
+      mWallet.server.sendCmd(["gethashespersec"]).then(function (d) {
+        resolve(d);
+      }).catch(function (e) {
+        reject(e);
+      });
     });
   }
 

@@ -4,7 +4,7 @@
  */
 class Updater {
 	static checkAppUpdate() {return new Promise((resolve, reject) => {
-		fetch("https://gitlab.com/api/v4/projects/mhbrgn%2Fmwallet-ltv/repository/tags").then((r) => {
+		fetch("https://gitlab.com/api/v4/projects/melianmiko%2Fmwallet-ltv/repository/tags").then((r) => {
 			return r.json();
 		}).then((d) => {
 			var lastTag = d[0].name,
